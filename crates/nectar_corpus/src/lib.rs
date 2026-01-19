@@ -25,6 +25,7 @@
 pub mod corpus;
 pub mod encoder;
 pub mod error;
+pub mod fixtures;
 pub mod loader;
 pub mod trace;
 

@@ -1,0 +1,112 @@
+{
+  "_meta": {
+    "description": "Realistic latency distributions: bimodal, long-tail, cold starts, GC pauses",
+    "scenario": "Production traffic patterns showing latency characteristics for sampling decisions",
+    "distributions": ["bimodal", "long_tail", "cold_start", "gc_pause", "database"],
+    "traces": 100
+  },
+  "traces": [
+    {"trace_id": "lat-bi-001", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 2, "cache.hit": true, "latency.distribution": "bimodal", "latency.percentile": "p50"},
+    {"trace_id": "lat-bi-002", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 3, "cache.hit": true, "latency.distribution": "bimodal", "latency.percentile": "p50"},
+    {"trace_id": "lat-bi-003", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 1, "cache.hit": true, "latency.distribution": "bimodal", "latency.percentile": "p50"},
+    {"trace_id": "lat-bi-004", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 2, "cache.hit": true, "latency.distribution": "bimodal", "latency.percentile": "p50"},
+    {"trace_id": "lat-bi-005", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 4, "cache.hit": true, "latency.distribution": "bimodal", "latency.percentile": "p75"},
+    {"trace_id": "lat-bi-006", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 145, "cache.hit": false, "latency.distribution": "bimodal", "latency.percentile": "p95"},
+    {"trace_id": "lat-bi-007", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 156, "cache.hit": false, "latency.distribution": "bimodal", "latency.percentile": "p95"},
+    {"trace_id": "lat-bi-008", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 132, "cache.hit": false, "latency.distribution": "bimodal", "latency.percentile": "p95"},
+    {"trace_id": "lat-bi-009", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 178, "cache.hit": false, "latency.distribution": "bimodal", "latency.percentile": "p99"},
+    {"trace_id": "lat-bi-010", "service.name": "cache-service", "http.route": "/api/v2/products/:id", "http.status_code": 200, "duration_ms": 201, "cache.hit": false, "latency.distribution": "bimodal", "latency.percentile": "p99"},
+
+    {"trace_id": "lat-tail-001", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 45, "latency.distribution": "long_tail", "latency.percentile": "p50"},
+    {"trace_id": "lat-tail-002", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 52, "latency.distribution": "long_tail", "latency.percentile": "p50"},
+    {"trace_id": "lat-tail-003", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 48, "latency.distribution": "long_tail", "latency.percentile": "p50"},
+    {"trace_id": "lat-tail-004", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 67, "latency.distribution": "long_tail", "latency.percentile": "p75"},
+    {"trace_id": "lat-tail-005", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 89, "latency.distribution": "long_tail", "latency.percentile": "p90"},
+    {"trace_id": "lat-tail-006", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 156, "latency.distribution": "long_tail", "latency.percentile": "p95"},
+    {"trace_id": "lat-tail-007", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 234, "latency.distribution": "long_tail", "latency.percentile": "p99"},
+    {"trace_id": "lat-tail-008", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 890, "latency.distribution": "long_tail", "latency.percentile": "p99.9"},
+    {"trace_id": "lat-tail-009", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 2345, "latency.distribution": "long_tail", "latency.percentile": "p99.99"},
+    {"trace_id": "lat-tail-010", "service.name": "api-gateway", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 5678, "latency.distribution": "long_tail", "latency.percentile": "p99.99", "latency.outlier": true},
+
+    {"trace_id": "lat-cold-001", "service.name": "lambda-processor", "faas.invoked_name": "image-resize", "http.status_code": 200, "duration_ms": 8500, "faas.cold_start": true, "faas.init_duration_ms": 8100, "latency.distribution": "cold_start"},
+    {"trace_id": "lat-cold-002", "service.name": "lambda-processor", "faas.invoked_name": "image-resize", "http.status_code": 200, "duration_ms": 380, "faas.cold_start": false, "latency.distribution": "warm"},
+    {"trace_id": "lat-cold-003", "service.name": "lambda-processor", "faas.invoked_name": "image-resize", "http.status_code": 200, "duration_ms": 420, "faas.cold_start": false, "latency.distribution": "warm"},
+    {"trace_id": "lat-cold-004", "service.name": "lambda-processor", "faas.invoked_name": "image-resize", "http.status_code": 200, "duration_ms": 9200, "faas.cold_start": true, "faas.init_duration_ms": 8800, "latency.distribution": "cold_start"},
+    {"trace_id": "lat-cold-005", "service.name": "lambda-processor", "faas.invoked_name": "image-resize", "http.status_code": 200, "duration_ms": 395, "faas.cold_start": false, "latency.distribution": "warm"},
+    {"trace_id": "lat-cold-006", "service.name": "api-gateway", "http.route": "/api/v2/products", "http.status_code": 200, "duration_ms": 2340, "container.first_request": true, "latency.distribution": "cold_start", "container.warm_pool_miss": true},
+    {"trace_id": "lat-cold-007", "service.name": "api-gateway", "http.route": "/api/v2/products", "http.status_code": 200, "duration_ms": 45, "container.first_request": false, "latency.distribution": "warm"},
+    {"trace_id": "lat-cold-008", "service.name": "api-gateway", "http.route": "/api/v2/products", "http.status_code": 200, "duration_ms": 52, "container.first_request": false, "latency.distribution": "warm"},
+    {"trace_id": "lat-cold-009", "service.name": "connection-pool", "db.system": "postgresql", "http.status_code": 200, "duration_ms": 450, "db.connection.new": true, "latency.distribution": "connection_establishment"},
+    {"trace_id": "lat-cold-010", "service.name": "connection-pool", "db.system": "postgresql", "http.status_code": 200, "duration_ms": 5, "db.connection.new": false, "db.connection.reused": true, "latency.distribution": "pooled"},
+
+    {"trace_id": "lat-gc-001", "service.name": "search-service", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 2450, "jvm.gc_pause_ms": 2100, "jvm.gc_type": "G1 Young", "latency.distribution": "gc_pause"},
+    {"trace_id": "lat-gc-002", "service.name": "search-service", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 12500, "jvm.gc_pause_ms": 12000, "jvm.gc_type": "Full GC", "latency.distribution": "gc_pause", "jvm.heap_pressure": true},
+    {"trace_id": "lat-gc-003", "service.name": "search-service", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 89, "jvm.gc_pause_ms": 0, "latency.distribution": "normal"},
+    {"trace_id": "lat-gc-004", "service.name": "search-service", "http.route": "/api/v2/search", "http.status_code": 200, "duration_ms": 340, "jvm.gc_pause_ms": 250, "jvm.gc_type": "G1 Mixed", "latency.distribution": "gc_pause"},
+    {"trace_id": "lat-gc-005", "service.name": "report-service", "http.route": "/api/v2/reports", "http.status_code": 200, "duration_ms": 45000, "jvm.gc_pause_ms": 15000, "jvm.gc_type": "Full GC", "jvm.oom_imminent": true, "latency.distribution": "gc_pause"},
+
+    {"trace_id": "lat-db-001", "service.name": "user-service", "db.system": "postgresql", "db.operation": "SELECT", "http.status_code": 200, "duration_ms": 2, "db.rows_returned": 1, "db.index_used": true, "latency.distribution": "indexed_query"},
+    {"trace_id": "lat-db-002", "service.name": "user-service", "db.system": "postgresql", "db.operation": "SELECT", "http.status_code": 200, "duration_ms": 3, "db.rows_returned": 1, "db.index_used": true, "latency.distribution": "indexed_query"},
+    {"trace_id": "lat-db-003", "service.name": "user-service", "db.system": "postgresql", "db.operation": "SELECT", "http.status_code": 200, "duration_ms": 456, "db.rows_returned": 50000, "db.index_used": false, "db.seq_scan": true, "latency.distribution": "full_scan"},
+    {"trace_id": "lat-db-004", "service.name": "user-service", "db.system": "postgresql", "db.operation": "SELECT", "http.status_code": 200, "duration_ms": 1234, "db.rows_returned": 1, "db.lock_wait_ms": 1200, "latency.distribution": "lock_contention"},
+    {"trace_id": "lat-db-005", "service.name": "analytics-service", "db.system": "postgresql", "db.operation": "SELECT", "http.status_code": 200, "duration_ms": 15000, "db.rows_scanned": 10000000, "db.aggregation": true, "latency.distribution": "analytical_query"},
+    {"trace_id": "lat-db-006", "service.name": "order-service", "db.system": "postgresql", "db.operation": "INSERT", "http.status_code": 200, "duration_ms": 8, "db.rows_affected": 1, "latency.distribution": "write"},
+    {"trace_id": "lat-db-007", "service.name": "order-service", "db.system": "postgresql", "db.operation": "INSERT", "http.status_code": 200, "duration_ms": 890, "db.rows_affected": 1, "db.replication_sync": true, "db.replicas_confirmed": 2, "latency.distribution": "sync_replication"},
+    {"trace_id": "lat-db-008", "service.name": "inventory-service", "db.system": "postgresql", "db.operation": "UPDATE", "http.status_code": 200, "duration_ms": 5000, "db.rows_affected": 50000, "db.batch_update": true, "latency.distribution": "batch_write"},
+
+    {"trace_id": "lat-net-001", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 234, "net.peer.region": "us-west-2", "net.latency_component": "same_region", "latency.distribution": "network"},
+    {"trace_id": "lat-net-002", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 89, "net.peer.region": "us-east-1", "net.latency_component": "cross_region", "latency.distribution": "network"},
+    {"trace_id": "lat-net-003", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 345, "net.peer.region": "eu-west-1", "net.latency_component": "cross_continent", "latency.distribution": "network"},
+    {"trace_id": "lat-net-004", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 567, "net.peer.region": "ap-southeast-1", "net.latency_component": "cross_pacific", "latency.distribution": "network"},
+    {"trace_id": "lat-net-005", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 1234, "net.retransmits": 3, "net.packet_loss": true, "latency.distribution": "network_degraded"},
+
+    {"trace_id": "lat-svc-001", "service.name": "ml-inference", "http.route": "/internal/predict", "http.status_code": 200, "duration_ms": 45, "ml.model": "recommendation-v4", "ml.batch_size": 1, "latency.distribution": "ml_inference"},
+    {"trace_id": "lat-svc-002", "service.name": "ml-inference", "http.route": "/internal/predict", "http.status_code": 200, "duration_ms": 890, "ml.model": "recommendation-v4", "ml.batch_size": 100, "latency.distribution": "ml_inference_batch"},
+    {"trace_id": "lat-svc-003", "service.name": "ml-inference", "http.route": "/internal/predict", "http.status_code": 200, "duration_ms": 2340, "ml.model": "image-classification", "ml.gpu_used": true, "ml.gpu_queue_wait_ms": 1500, "latency.distribution": "gpu_queue"},
+    {"trace_id": "lat-svc-004", "service.name": "pdf-generator", "http.route": "/internal/generate", "http.status_code": 200, "duration_ms": 5670, "pdf.pages": 50, "pdf.images": 25, "latency.distribution": "cpu_bound"},
+    {"trace_id": "lat-svc-005", "service.name": "video-transcoder", "http.route": "/internal/transcode", "http.status_code": 200, "duration_ms": 45000, "video.duration_seconds": 300, "video.resolution": "1080p", "latency.distribution": "cpu_bound"},
+
+    {"trace_id": "lat-queue-001", "service.name": "worker-service", "messaging.system": "rabbitmq", "http.status_code": 200, "duration_ms": 12, "queue.wait_time_ms": 5, "latency.distribution": "queue_normal"},
+    {"trace_id": "lat-queue-002", "service.name": "worker-service", "messaging.system": "rabbitmq", "http.status_code": 200, "duration_ms": 5012, "queue.wait_time_ms": 5000, "queue.depth_at_enqueue": 10000, "latency.distribution": "queue_backlog"},
+    {"trace_id": "lat-queue-003", "service.name": "worker-service", "messaging.system": "rabbitmq", "http.status_code": 200, "duration_ms": 30012, "queue.wait_time_ms": 30000, "queue.depth_at_enqueue": 100000, "latency.distribution": "queue_severe_backlog"},
+
+    {"trace_id": "lat-retry-001", "service.name": "payment-service", "http.route": "/internal/charge", "http.status_code": 200, "duration_ms": 450, "retry.attempts": 1, "latency.distribution": "no_retry"},
+    {"trace_id": "lat-retry-002", "service.name": "payment-service", "http.route": "/internal/charge", "http.status_code": 200, "duration_ms": 1350, "retry.attempts": 2, "retry.backoff_total_ms": 500, "latency.distribution": "single_retry"},
+    {"trace_id": "lat-retry-003", "service.name": "payment-service", "http.route": "/internal/charge", "http.status_code": 200, "duration_ms": 3850, "retry.attempts": 3, "retry.backoff_total_ms": 1500, "latency.distribution": "multiple_retry"},
+    {"trace_id": "lat-retry-004", "service.name": "payment-service", "http.route": "/internal/charge", "http.status_code": 200, "duration_ms": 8350, "retry.attempts": 4, "retry.backoff_total_ms": 3500, "retry.exponential": true, "latency.distribution": "retry_storm"},
+
+    {"trace_id": "lat-auth-001", "service.name": "auth-service", "http.route": "/oauth/token", "http.status_code": 200, "duration_ms": 23, "auth.cache_hit": true, "latency.distribution": "auth_cached"},
+    {"trace_id": "lat-auth-002", "service.name": "auth-service", "http.route": "/oauth/token", "http.status_code": 200, "duration_ms": 890, "auth.cache_hit": false, "auth.idp_lookup": true, "auth.idp": "okta", "latency.distribution": "auth_idp_lookup"},
+    {"trace_id": "lat-auth-003", "service.name": "auth-service", "http.route": "/oauth/token", "http.status_code": 200, "duration_ms": 2340, "auth.cache_hit": false, "auth.mfa_required": true, "auth.mfa_type": "totp", "latency.distribution": "auth_mfa"},
+
+    {"trace_id": "lat-enc-001", "service.name": "encryption-service", "http.route": "/internal/encrypt", "http.status_code": 200, "duration_ms": 5, "crypto.algorithm": "AES-256-GCM", "crypto.payload_bytes": 1024, "latency.distribution": "encryption_small"},
+    {"trace_id": "lat-enc-002", "service.name": "encryption-service", "http.route": "/internal/encrypt", "http.status_code": 200, "duration_ms": 450, "crypto.algorithm": "AES-256-GCM", "crypto.payload_bytes": 104857600, "latency.distribution": "encryption_large"},
+    {"trace_id": "lat-enc-003", "service.name": "encryption-service", "http.route": "/internal/sign", "http.status_code": 200, "duration_ms": 89, "crypto.algorithm": "RSA-4096", "crypto.hsm_used": true, "latency.distribution": "hsm_operation"},
+
+    {"trace_id": "lat-comp-001", "service.name": "api-gateway", "http.route": "/api/v2/data", "http.status_code": 200, "duration_ms": 234, "compression.algorithm": "gzip", "compression.input_bytes": 1048576, "compression.output_bytes": 104857, "compression.ratio": 10, "latency.distribution": "compression"},
+    {"trace_id": "lat-comp-002", "service.name": "api-gateway", "http.route": "/api/v2/data", "http.status_code": 200, "duration_ms": 12, "compression.algorithm": "none", "content.size_bytes": 1024, "latency.distribution": "no_compression"},
+
+    {"trace_id": "lat-serial-001", "service.name": "api-gateway", "http.route": "/api/v2/complex", "http.status_code": 200, "duration_ms": 45, "serialization.format": "json", "serialization.objects": 100, "latency.distribution": "serialization"},
+    {"trace_id": "lat-serial-002", "service.name": "api-gateway", "http.route": "/api/v2/complex", "http.status_code": 200, "duration_ms": 12, "serialization.format": "protobuf", "serialization.objects": 100, "latency.distribution": "serialization"},
+    {"trace_id": "lat-serial-003", "service.name": "api-gateway", "http.route": "/api/v2/complex", "http.status_code": 200, "duration_ms": 890, "serialization.format": "json", "serialization.objects": 10000, "serialization.deeply_nested": true, "latency.distribution": "serialization_complex"},
+
+    {"trace_id": "lat-file-001", "service.name": "file-service", "http.route": "/internal/read", "http.status_code": 200, "duration_ms": 2, "file.size_bytes": 1024, "file.cached": true, "latency.distribution": "file_cached"},
+    {"trace_id": "lat-file-002", "service.name": "file-service", "http.route": "/internal/read", "http.status_code": 200, "duration_ms": 45, "file.size_bytes": 1024, "file.cached": false, "file.disk_type": "ssd", "latency.distribution": "file_ssd"},
+    {"trace_id": "lat-file-003", "service.name": "file-service", "http.route": "/internal/read", "http.status_code": 200, "duration_ms": 234, "file.size_bytes": 1024, "file.cached": false, "file.disk_type": "hdd", "latency.distribution": "file_hdd"},
+    {"trace_id": "lat-file-004", "service.name": "file-service", "http.route": "/internal/read", "http.status_code": 200, "duration_ms": 890, "file.size_bytes": 104857600, "file.disk_type": "network", "file.mount": "nfs", "latency.distribution": "file_network"},
+
+    {"trace_id": "lat-dns-001", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 89, "dns.lookup_ms": 45, "dns.cached": false, "latency.distribution": "dns_lookup"},
+    {"trace_id": "lat-dns-002", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 46, "dns.lookup_ms": 1, "dns.cached": true, "latency.distribution": "dns_cached"},
+    {"trace_id": "lat-dns-003", "service.name": "api-gateway", "http.route": "/api/v2/external", "http.status_code": 200, "duration_ms": 5089, "dns.lookup_ms": 5000, "dns.timeout_retries": 2, "latency.distribution": "dns_slow"},
+
+    {"trace_id": "lat-tls-001", "service.name": "api-gateway", "http.route": "/api/v2/secure", "http.status_code": 200, "duration_ms": 145, "tls.handshake_ms": 100, "tls.version": "TLSv1.3", "tls.resumed": false, "latency.distribution": "tls_full_handshake"},
+    {"trace_id": "lat-tls-002", "service.name": "api-gateway", "http.route": "/api/v2/secure", "http.status_code": 200, "duration_ms": 52, "tls.handshake_ms": 5, "tls.version": "TLSv1.3", "tls.resumed": true, "latency.distribution": "tls_resumed"},
+    {"trace_id": "lat-tls-003", "service.name": "api-gateway", "http.route": "/api/v2/secure", "http.status_code": 200, "duration_ms": 890, "tls.handshake_ms": 800, "tls.version": "TLSv1.2", "tls.client_cert_validation": true, "latency.distribution": "tls_mtls"},
+
+    {"trace_id": "lat-http2-001", "service.name": "api-gateway", "http.route": "/api/v2/stream", "http.status_code": 200, "duration_ms": 23, "http.version": "2.0", "http2.stream_id": 1, "http2.multiplexed": true, "latency.distribution": "http2_multiplexed"},
+    {"trace_id": "lat-http2-002", "service.name": "api-gateway", "http.route": "/api/v2/stream", "http.status_code": 200, "duration_ms": 234, "http.version": "2.0", "http2.stream_id": 100, "http2.hol_blocking": true, "latency.distribution": "http2_hol_blocked"},
+
+    {"trace_id": "lat-grpc-001", "service.name": "product-service", "rpc.system": "grpc", "rpc.method": "GetProduct", "http.status_code": 200, "duration_ms": 12, "grpc.request_size_bytes": 64, "grpc.response_size_bytes": 1024, "latency.distribution": "grpc_unary"},
+    {"trace_id": "lat-grpc-002", "service.name": "product-service", "rpc.system": "grpc", "rpc.method": "StreamProducts", "http.status_code": 200, "duration_ms": 5670, "grpc.messages_sent": 1000, "grpc.stream_duration_ms": 5600, "latency.distribution": "grpc_streaming"}
+  ]
+}
