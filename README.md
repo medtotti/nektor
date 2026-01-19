@@ -1,6 +1,6 @@
 # Nectar
 
-AI-native sampling policy engine for [Honeycomb Refinery](https://docs.honeycomb.io/manage-data-volume/refinery/).
+AI-native sampling policy engine for [Honeycomb Refinery](https://docs.honeycomb.io/manage-data-volume/sample/honeycomb-refinery/).
 
 Nectar uses Claude to generate and refine tail-based sampling policies from natural language intent and trace exemplars. Policies are expressed in TOON format, verified against historical data, and compiled to Refinery-compatible rules.
 
@@ -87,7 +87,7 @@ The prover ensures policies meet safety requirements:
 
 ## VOPR Testing
 
-Nectar uses **VOPR (Vaguely Ordered Parallel Replayability)** for deterministic simulation testing, inspired by [TigerBeetle's testing methodology](https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/VOPR.md).
+Nectar uses **VOPR (Vaguely Ordered Parallel Replayability)** for deterministic simulation testing, inspired by [TigerBeetle's testing methodology](https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/internals/vopr.md).
 
 VOPR enables:
 - **Determinism** - ChaCha8 RNG with explicit seeds ensures identical results from identical inputs
