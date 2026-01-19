@@ -187,7 +187,6 @@ impl FixtureGenerator {
                 .with_attribute("incident.phase", phase)
                 .with_attribute("scenario", "failure_patterns");
 
-            // Add phase-specific attributes
             match phase {
                 "circuit-open" | "circuit-half-open" => {
                     trace = trace
@@ -346,7 +345,6 @@ impl FixtureGenerator {
 
             match pattern {
                 "wide_event" => {
-                    // Add many attributes to simulate wide events
                     trace = trace
                         .with_attribute("user.id", format!("usr_{:016x}", self.rng.gen::<u64>()))
                         .with_attribute("session.id", format!("sess_{:016x}", self.rng.gen::<u64>()))
@@ -407,7 +405,6 @@ impl FixtureGenerator {
         let mut corpus = Corpus::new();
         let traces_per_scenario = self.config.trace_count / 4;
 
-        // Reset RNG for determinism
         self.rng = ChaCha8Rng::seed_from_u64(self.config.seed);
 
         let old_count = self.config.trace_count;

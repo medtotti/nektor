@@ -135,13 +135,11 @@ pub fn run_evolution_campaign(seed: u64, simulated_days: usize) -> CampaignResul
     let mut failures = Vec::new();
 
     for day in 0..simulated_days {
-        // Simulate realistic policy change patterns
         let is_weekday = day % 7 < 5;
-        let is_deploy_window = day % 14 == 0; // Bi-weekly deploys
-        let is_incident = rng.gen_bool(0.02); // 2% chance of incident day
-        let is_quarter_end = day % 90 < 7; // Freeze period
+        let is_deploy_window = day % 14 == 0;
+        let is_incident = rng.gen_bool(0.02);
+        let is_quarter_end = day % 90 < 7;
 
-        // More changes during deploy windows, fewer during freeze
         let mutation_rate = if is_quarter_end {
             0.1
         } else if is_deploy_window {
@@ -160,7 +158,6 @@ pub fn run_evolution_campaign(seed: u64, simulated_days: usize) -> CampaignResul
 
         for _ in 0..mutations {
             if rng.gen_bool(0.7) {
-                // Add rule
                 let rule_name = format!("rule-day{}-{}", day, rng.gen::<u16>());
                 let priority = rng.gen_range(1..100);
                 let action = generate_random_action(&mut rng);
@@ -186,7 +183,6 @@ pub fn run_evolution_campaign(seed: u64, simulated_days: usize) -> CampaignResul
             }
         }
 
-        // Incident response: emergency rules
         if is_incident {
             let incident_rule = format!("incident-response-day{day}");
             sim.step(SimAction::AddRule {
@@ -197,15 +193,12 @@ pub fn run_evolution_campaign(seed: u64, simulated_days: usize) -> CampaignResul
             });
         }
 
-        // Daily verification
         let _verify_result = sim.step(SimAction::Verify);
 
-        // Daily compilation check
         if let StepResult::CompileFailed { error } = sim.step(SimAction::Compile) {
             failures.push(format!("Day {day}: compilation failed: {error}"));
         }
 
-        // Weekly checkpoint
         if day % 7 == 0 {
             sim.step(SimAction::Checkpoint);
         }
@@ -385,7 +378,6 @@ pub fn run_infrastructure_faults_campaign(seed: u64, iterations: usize) -> Campa
     let compiler = Compiler::new();
     let prover = Prover::default();
 
-    // Fault types with their probabilities over time
     let fault_types = [
         "dns_resolution_failure",
         "dns_timeout",
@@ -403,14 +395,12 @@ pub fn run_infrastructure_faults_campaign(seed: u64, iterations: usize) -> Campa
         let fault_probability = (i as f64 / iterations as f64).mul_add(0.4, 0.1);
         let has_fault = rng.gen_bool(fault_probability);
 
-        // Generate corpus with infrastructure fault patterns
         let mut config = SyntheticConfig::default()
             .with_seed(seed + i as u64)
             .with_trace_count(50);
 
         if has_fault {
             let fault_type = fault_types.choose(&mut rng).unwrap();
-            // Higher error rate during infrastructure faults
             config = config.with_error_rate(match *fault_type {
                 "network_partition" => 0.8,
                 "dns_resolution_failure" => 0.6,
@@ -422,9 +412,7 @@ pub fn run_infrastructure_faults_campaign(seed: u64, iterations: usize) -> Campa
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // Test that policy compilation handles edge cases
         let policy = if has_fault && rng.gen_bool(0.2) {
-            // Sometimes generate degraded policies during faults
             degraded_policy(&mut rng)
         } else {
             standard_policy()
@@ -442,7 +430,7 @@ pub fn run_infrastructure_faults_campaign(seed: u64, iterations: usize) -> Campa
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
-    let simulated_seconds = (iterations as u64) * 300; // 5 minutes per iteration
+    let simulated_seconds = (iterations as u64) * 300;
 
     if failures.is_empty() {
         CampaignResult::pass(
@@ -477,17 +465,14 @@ pub fn run_resource_exhaustion_campaign(seed: u64, iterations: usize) -> Campaig
     let compiler = Compiler::new();
     let prover = Prover::default();
 
-    // Simulate resource pressure building over time
     for i in 0..iterations {
         let pressure = (i as f64) / (iterations as f64);
 
-        // Resource exhaustion affects different aspects
         let memory_pressure = pressure * rng.gen_range(0.8..1.2);
         let fd_pressure = pressure * rng.gen_range(0.5..1.0);
         let thread_pressure = pressure * rng.gen_range(0.6..1.1);
         let conn_pool_pressure = pressure * rng.gen_range(0.7..1.3);
 
-        // Higher pressure = more errors, slower responses
         let error_rate = f64::min(memory_pressure * 0.3, 0.9);
         let slow_rate = f64::min(conn_pool_pressure * 0.4, 0.8);
 
@@ -499,7 +484,6 @@ pub fn run_resource_exhaustion_campaign(seed: u64, iterations: usize) -> Campaig
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // Under extreme pressure, policies might be simplified
         let policy = if memory_pressure > 0.9 {
             minimal_policy()
         } else if fd_pressure > 0.8 || thread_pressure > 0.8 {
@@ -574,7 +558,6 @@ pub fn run_distributed_faults_campaign(seed: u64, iterations: usize) -> Campaign
     ];
 
     for i in 0..iterations {
-        // Select fault scenario based on weighted probability
         let mut active_faults = Vec::new();
         for (fault, probability) in &fault_scenarios {
             if rng.gen_bool(*probability) {
@@ -582,7 +565,6 @@ pub fn run_distributed_faults_campaign(seed: u64, iterations: usize) -> Campaign
             }
         }
 
-        // Faults compound each other
         let fault_severity = active_faults.len() as f64 * 0.15;
         let error_rate = f64::min(0.05 + fault_severity, 0.95);
 
@@ -593,7 +575,6 @@ pub fn run_distributed_faults_campaign(seed: u64, iterations: usize) -> Campaign
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // During severe distributed failures, use defensive policies
         let policy = if active_faults.contains(&"split_brain")
             || active_faults.contains(&"quorum_loss")
         {
@@ -620,7 +601,7 @@ pub fn run_distributed_faults_campaign(seed: u64, iterations: usize) -> Campaign
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
-    let simulated_seconds = (iterations as u64) * 120; // 2 minutes per iteration
+    let simulated_seconds = (iterations as u64) * 120;
 
     if failures.is_empty() {
         CampaignResult::pass("distributed_faults", iterations, simulated_seconds, elapsed)
@@ -651,13 +632,11 @@ pub fn run_deployment_faults_campaign(seed: u64, iterations: usize) -> CampaignR
     let compiler = Compiler::new();
     let prover = Prover::default();
 
-    // Simulate deployment lifecycle
     let mut current_version: u32 = 1;
     let mut canary_active = false;
     let mut rollback_pending = false;
 
     for i in 0..iterations {
-        // Deployment events
         let is_deploy_time = i % 50 == 0;
         let is_canary_check = canary_active && i % 5 == 0;
 
@@ -666,25 +645,21 @@ pub fn run_deployment_faults_campaign(seed: u64, iterations: usize) -> CampaignR
             canary_active = true;
         }
 
-        // Canary failure detection
         if is_canary_check {
             let canary_error_rate = rng.gen_range(0.0..0.2);
             if canary_error_rate > 0.1 {
                 rollback_pending = true;
                 canary_active = false;
             } else if rng.gen_bool(0.7) {
-                // Promote canary
                 canary_active = false;
             }
         }
 
-        // Rollback execution
         if rollback_pending && rng.gen_bool(0.3) {
             current_version = current_version.saturating_sub(1).max(1);
             rollback_pending = false;
         }
 
-        // Generate corpus based on deployment state
         let error_rate = if canary_active {
             rng.gen_range(0.02..0.15)
         } else if rollback_pending {
@@ -700,7 +675,6 @@ pub fn run_deployment_faults_campaign(seed: u64, iterations: usize) -> CampaignR
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // Policy varies by version
         let policy = match current_version % 4 {
             0 => minimal_policy(),
             2 => aggressive_policy(&mut rng),
@@ -723,7 +697,7 @@ pub fn run_deployment_faults_campaign(seed: u64, iterations: usize) -> CampaignR
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
-    let simulated_seconds = (iterations as u64) * 600; // 10 minutes per iteration
+    let simulated_seconds = (iterations as u64) * 600;
 
     if failures.is_empty() {
         CampaignResult::pass("deployment_faults", iterations, simulated_seconds, elapsed)
@@ -752,20 +726,18 @@ pub fn run_cascading_failure_campaign(seed: u64, iterations: usize) -> CampaignR
     let compiler = Compiler::new();
     let prover = Prover::default();
 
-    // Simulate cascade lifecycle
-    let cascade_duration = 100; // iterations per cascade event
+    let cascade_duration = 100;
 
     for i in 0..iterations {
         let cascade_phase = i % cascade_duration;
         let cascade_number = i / cascade_duration;
 
-        // Cascade phases: healthy -> degrading -> failing -> recovering -> healthy
         let (error_rate, slow_rate) = match cascade_phase {
-            0..=19 => (0.02, 0.05),             // healthy
-            20..=39 => (((cascade_phase - 20) as f64).mul_add(0.02, 0.10), 0.20), // degrading
-            40..=59 => (((cascade_phase - 40) as f64).mul_add(0.02, 0.50), 0.60), // failing
-            60..=79 => (((cascade_phase - 60) as f64).mul_add(-0.03, 0.70), 0.40), // recovering
-            _ => (0.05, 0.08),                  // stabilizing
+            0..=19 => (0.02, 0.05),
+            20..=39 => (((cascade_phase - 20) as f64).mul_add(0.02, 0.10), 0.20),
+            40..=59 => (((cascade_phase - 40) as f64).mul_add(0.02, 0.50), 0.60),
+            60..=79 => (((cascade_phase - 60) as f64).mul_add(-0.03, 0.70), 0.40),
+            _ => (0.05, 0.08),
         };
 
         let config = SyntheticConfig::default()
@@ -776,7 +748,6 @@ pub fn run_cascading_failure_campaign(seed: u64, iterations: usize) -> CampaignR
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // Policy adapts to cascade phase
         let policy = if (40..60).contains(&cascade_phase) {
             emergency_policy()
         } else if (20..40).contains(&cascade_phase) {
@@ -801,7 +772,7 @@ pub fn run_cascading_failure_campaign(seed: u64, iterations: usize) -> CampaignR
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
-    let simulated_seconds = (iterations as u64) * 30; // 30 seconds per iteration
+    let simulated_seconds = (iterations as u64) * 30;
 
     if failures.is_empty() {
         CampaignResult::pass("cascading_failure", iterations, simulated_seconds, elapsed)
@@ -831,7 +802,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
     let compiler = Compiler::new();
     let prover = Prover::default();
 
-    // 10 years = 3650 days
     let total_days = 3650;
     let mut major_incidents = 0;
     let mut deployments = 0;
@@ -842,13 +812,11 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
         let day_of_year = day % 365;
         let month = day_of_year / 30;
 
-        // Seasonal patterns
         let is_black_friday = month == 10 && (day_of_year % 365) > 320;
         let is_holiday_season = month == 11;
         let is_summer_lull = (5..=7).contains(&month);
         let is_quarter_end = month % 3 == 2 && day_of_year % 30 > 25;
 
-        // Traffic multiplier based on season
         let traffic_multiplier = if is_black_friday {
             10.0
         } else if is_holiday_season {
@@ -859,7 +827,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
             1.0
         };
 
-        // Incident probability (increases under high load)
         let incident_probability = 0.005 * traffic_multiplier;
         let has_incident = rng.gen_bool(f64::min(incident_probability, 0.5));
 
@@ -867,7 +834,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
             major_incidents += 1;
         }
 
-        // Weekly deployments (except during incidents or freezes)
         let is_deploy_day = day % 7 == 2 && !has_incident && !is_quarter_end;
         if is_deploy_day {
             deployments += 1;
@@ -876,7 +842,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
             }
         }
 
-        // Generate corpus reflecting current state
         let base_error_rate = if has_incident { 0.30 } else { 0.03 };
         let error_rate = f64::min(base_error_rate * traffic_multiplier.sqrt(), 0.9);
 
@@ -888,7 +853,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
 
         let corpus = SyntheticCorpus::new(config).generate();
 
-        // Policy evolves over time
         let policy = if has_incident {
             emergency_policy()
         } else if is_black_friday || is_holiday_season {
@@ -901,7 +865,6 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
             }
         };
 
-        // Only check every 10 days to speed up simulation
         if day % 10 == 0 {
             let compile_result = std::panic::catch_unwind(|| compiler.compile(&policy));
             if compile_result.is_err() {
@@ -916,7 +879,7 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
     }
 
     let elapsed = start.elapsed().as_millis() as u64;
-    let simulated_seconds = (total_days as u64) * 86400; // Full 10 years in seconds
+    let simulated_seconds = (total_days as u64) * 86400;
 
     eprintln!(
         "Decade simulation: {total_days} days, {major_incidents} major incidents, {deployments} deployments, {policy_version} policy versions"
@@ -938,7 +901,7 @@ pub fn run_decade_simulation(seed: u64) -> CampaignResult {
 pub fn run_all_campaigns(seed: u64) -> Vec<CampaignResult> {
     vec![
         run_chaos_campaign(seed, 10_000),
-        run_evolution_campaign(seed, 3650), // 10 years
+        run_evolution_campaign(seed, 3650),
         run_determinism_campaign(seed, 5_000),
         run_cardinality_campaign(seed, 100_000, 10),
         run_combined_faults_campaign(seed, 5_000),
