@@ -1,0 +1,106 @@
+[
+  {
+    "trace_id": "mix-0001",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/health",
+    "http.status_code": 200,
+    "duration_ms": 1,
+    "span_count": 1,
+    "error": false
+  },
+  {
+    "trace_id": "mix-0002",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/api/v1/users",
+    "http.status_code": 200,
+    "duration_ms": 45,
+    "span_count": 4,
+    "error": false
+  },
+  {
+    "trace_id": "mix-0003",
+    "service.name": "api-gateway",
+    "http.method": "POST",
+    "http.route": "/api/v1/orders",
+    "http.status_code": 500,
+    "duration_ms": 1200,
+    "span_count": 8,
+    "error": true,
+    "error.message": "Internal server error"
+  },
+  {
+    "trace_id": "mix-0004",
+    "service.name": "order-service",
+    "http.method": "POST",
+    "http.route": "/internal/orders",
+    "http.status_code": 201,
+    "duration_ms": 89,
+    "span_count": 5,
+    "error": false
+  },
+  {
+    "trace_id": "mix-0005",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/api/v1/products",
+    "http.status_code": 200,
+    "duration_ms": 32,
+    "span_count": 3,
+    "error": false,
+    "cache.hit": true
+  },
+  {
+    "trace_id": "mix-0006",
+    "service.name": "payment-service",
+    "http.method": "POST",
+    "http.route": "/internal/charge",
+    "http.status_code": 200,
+    "duration_ms": 450,
+    "span_count": 6,
+    "error": false,
+    "payment.amount_cents": 9999
+  },
+  {
+    "trace_id": "mix-0007",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/api/v1/users/:id",
+    "http.status_code": 404,
+    "duration_ms": 12,
+    "span_count": 2,
+    "error": false
+  },
+  {
+    "trace_id": "mix-0008",
+    "service.name": "notification-service",
+    "http.method": "POST",
+    "http.route": "/internal/notify",
+    "http.status_code": 202,
+    "duration_ms": 25,
+    "span_count": 2,
+    "error": false,
+    "notification.channel": "email"
+  },
+  {
+    "trace_id": "mix-0009",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/health",
+    "http.status_code": 200,
+    "duration_ms": 1,
+    "span_count": 1,
+    "error": false
+  },
+  {
+    "trace_id": "mix-0010",
+    "service.name": "report-service",
+    "http.method": "GET",
+    "http.route": "/api/v1/reports/daily",
+    "http.status_code": 200,
+    "duration_ms": 5200,
+    "span_count": 22,
+    "error": false
+  }
+]

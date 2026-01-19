@@ -1,0 +1,52 @@
+[
+  {
+    "trace_id": "abc123-0001",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/api/v1/users",
+    "http.status_code": 200,
+    "duration_ms": 45,
+    "span_count": 3,
+    "error": false
+  },
+  {
+    "trace_id": "abc123-0002",
+    "service.name": "api-gateway",
+    "http.method": "POST",
+    "http.route": "/api/v1/orders",
+    "http.status_code": 201,
+    "duration_ms": 120,
+    "span_count": 8,
+    "error": false
+  },
+  {
+    "trace_id": "abc123-0003",
+    "service.name": "user-service",
+    "http.method": "GET",
+    "http.route": "/internal/user/:id",
+    "http.status_code": 200,
+    "duration_ms": 12,
+    "span_count": 2,
+    "error": false
+  },
+  {
+    "trace_id": "abc123-0004",
+    "service.name": "order-service",
+    "http.method": "POST",
+    "http.route": "/internal/orders",
+    "http.status_code": 201,
+    "duration_ms": 89,
+    "span_count": 5,
+    "error": false
+  },
+  {
+    "trace_id": "abc123-0005",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/health",
+    "http.status_code": 200,
+    "duration_ms": 2,
+    "span_count": 1,
+    "error": false
+  }
+]

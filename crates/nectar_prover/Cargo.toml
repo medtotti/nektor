@@ -1,0 +1,24 @@
+[package]
+name = "nectar_prover"
+description = "Policy verification and safety checks for Nectar"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+toon_policy.workspace = true
+nectar_corpus.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+xxhash-rust.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+insta.workspace = true
+
+[lints]
+workspace = true

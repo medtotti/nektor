@@ -1,0 +1,25 @@
+[package]
+name = "nectar_claude"
+description = "Claude API client and TOON I/O for Nectar"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+toon_policy.workspace = true
+nectar_corpus.workspace = true
+tokio.workspace = true
+reqwest.workspace = true
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+insta.workspace = true
+
+[lints]
+workspace = true

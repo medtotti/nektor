@@ -1,0 +1,55 @@
+[
+  {
+    "trace_id": "err-0001",
+    "service.name": "api-gateway",
+    "http.method": "POST",
+    "http.route": "/api/v1/payments",
+    "http.status_code": 500,
+    "duration_ms": 2500,
+    "span_count": 12,
+    "error": true,
+    "error.message": "Database connection timeout"
+  },
+  {
+    "trace_id": "err-0002",
+    "service.name": "payment-service",
+    "http.method": "POST",
+    "http.route": "/internal/charge",
+    "http.status_code": 503,
+    "duration_ms": 30000,
+    "span_count": 4,
+    "error": true,
+    "error.message": "Upstream service unavailable"
+  },
+  {
+    "trace_id": "err-0003",
+    "service.name": "api-gateway",
+    "http.method": "GET",
+    "http.route": "/api/v1/users/:id",
+    "http.status_code": 404,
+    "duration_ms": 15,
+    "span_count": 2,
+    "error": false
+  },
+  {
+    "trace_id": "err-0004",
+    "service.name": "auth-service",
+    "http.method": "POST",
+    "http.route": "/internal/validate",
+    "http.status_code": 401,
+    "duration_ms": 8,
+    "span_count": 1,
+    "error": false
+  },
+  {
+    "trace_id": "err-0005",
+    "service.name": "order-service",
+    "http.method": "POST",
+    "http.route": "/internal/orders",
+    "http.status_code": 422,
+    "duration_ms": 25,
+    "span_count": 3,
+    "error": true,
+    "error.message": "Validation failed: invalid quantity"
+  }
+]

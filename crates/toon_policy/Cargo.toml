@@ -1,0 +1,21 @@
+[package]
+name = "toon_policy"
+description = "TOON format parser and typed policy model for Nectar"
+version.workspace = true
+edition.workspace = true
+authors.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+serde.workspace = true
+serde_json.workspace = true
+thiserror.workspace = true
+tracing.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true
+insta.workspace = true
+
+[lints]
+workspace = true
