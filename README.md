@@ -47,7 +47,8 @@ nectar/
 │   ├── nectar_corpus/     # Trace exemplar storage and encoding
 │   ├── nectar_claude/     # Claude API client for policy generation
 │   ├── nectar_prover/     # Policy verification and safety checks
-│   └── nectar_compiler/   # Policy to Refinery rules compiler
+│   ├── nectar_compiler/   # Policy to Refinery rules compiler
+│   └── nectar_vopr/       # VOPR deterministic simulation testing
 └── cmd/
     └── nectar/            # CLI application
 ```
@@ -83,6 +84,30 @@ The prover ensures policies meet safety requirements:
 - **Error preservation** - Error traces (status >= 500) are never dropped
 - **Must-keep coverage** - Critical traces identified in corpus are retained
 - **Budget compliance** - Policies stay within configured throughput limits
+
+## VOPR Testing
+
+Nectar uses **VOPR (Vaguely Ordered Parallel Replayability)** for deterministic simulation testing, inspired by [TigerBeetle's testing methodology](https://github.com/tigerbeetle/tigerbeetle/blob/main/docs/VOPR.md).
+
+VOPR enables:
+- **Determinism** - ChaCha8 RNG with explicit seeds ensures identical results from identical inputs
+- **Time compression** - Simulate years of policy evolution in seconds
+- **Fault injection** - Systematic chaos testing with controlled corruption
+- **Reproducibility** - Every failure includes a seed for exact replay
+
+```bash
+# Run VOPR simulation tests
+cargo test --package nectar_vopr
+
+# Example output:
+# === VOPR Campaign Summary ===
+# [PASS] chaos_campaign: 10000 iterations, 36000000s simulated
+# [PASS] evolution_campaign: 365 days simulated
+# [PASS] determinism_campaign: 5000 consistency checks
+# Total: 20375 iterations, 2.2 years simulated in ~13s
+```
+
+See `crates/nectar_vopr/TEST_STRATEGY.md` for detailed documentation.
 
 ## Commands
 
