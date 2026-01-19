@@ -10,9 +10,10 @@ Cargo.lock
 *.swo
 *~
 
-# Claude Code local files (not shared)
+# Claude Code (not shared publicly)
+.claude/
+CLAUDE.md
 CLAUDE.local.md
-.claude/settings.local.json
 
 # Environment and secrets
 .env
