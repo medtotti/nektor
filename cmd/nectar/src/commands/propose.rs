@@ -24,7 +24,8 @@ pub async fn run(
     let client = Client::new(ClientConfig {
         api_key,
         ..Default::default()
-    }).with_context(|| "Failed to create Claude client")?;
+    })
+    .with_context(|| "Failed to create Claude client")?;
 
     // Load corpus if provided
     let corpus = if let Some(path) = corpus_path {
@@ -41,17 +42,22 @@ pub async fn run(
     let current_policy = if let Some(path) = policy_path {
         let content = fs::read_to_string(path)
             .with_context(|| format!("Failed to read policy file: {path}"))?;
-        Some(toon_policy::parse(&content)
-            .with_context(|| "Failed to parse existing policy")?)
+        Some(toon_policy::parse(&content).with_context(|| "Failed to parse existing policy")?)
     } else {
         None
     };
 
     // Generate policy
-    let policy = client.generate_policy(intent, &corpus, current_policy.as_ref()).await
+    let policy = client
+        .generate_policy(intent, &corpus, current_policy.as_ref())
+        .await
         .with_context(|| "Failed to generate policy")?;
 
-    info!("Generated policy '{}' with {} rules", policy.name, policy.rules.len());
+    info!(
+        "Generated policy '{}' with {} rules",
+        policy.name,
+        policy.rules.len()
+    );
 
     // Serialize policy to TOON format
     let output = toon_policy::serialize(&policy);
@@ -68,7 +74,10 @@ fn load_corpus(path: &str) -> Result<Corpus> {
     let path = Path::new(path);
 
     if !path.exists() {
-        warn!("Corpus path not found: {}. Using empty corpus.", path.display());
+        warn!(
+            "Corpus path not found: {}. Using empty corpus.",
+            path.display()
+        );
         return Ok(Corpus::new());
     }
 
@@ -79,7 +88,10 @@ fn load_corpus(path: &str) -> Result<Corpus> {
         Corpus::load_file(path)
             .with_context(|| format!("Failed to load corpus file: {}", path.display()))
     } else {
-        warn!("Corpus path is not a file or directory: {}. Using empty corpus.", path.display());
+        warn!(
+            "Corpus path is not a file or directory: {}. Using empty corpus.",
+            path.display()
+        );
         Ok(Corpus::new())
     }
 }

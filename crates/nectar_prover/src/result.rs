@@ -86,7 +86,11 @@ impl ProverResult {
 
     /// Creates a rejected result.
     #[must_use]
-    pub const fn rejected(violations: Vec<Violation>, checks_passed: usize, checks_total: usize) -> Self {
+    pub const fn rejected(
+        violations: Vec<Violation>,
+        checks_passed: usize,
+        checks_total: usize,
+    ) -> Self {
         Self {
             status: Status::Rejected,
             checks_passed,

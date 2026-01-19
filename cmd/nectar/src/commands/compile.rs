@@ -1,7 +1,7 @@
 //! Compile command implementation.
 
 use anyhow::{Context, Result};
-use nectar_compiler::{Compiler, CompileOptions, Lockfile, OutputFormat};
+use nectar_compiler::{CompileOptions, Compiler, Lockfile, OutputFormat};
 use std::fs;
 use std::path::Path;
 use tracing::info;
@@ -20,10 +20,13 @@ pub fn run(
         .with_context(|| format!("Failed to read policy file: {policy_path}"))?;
 
     // Parse policy
-    let policy = toon_policy::parse(&policy_content)
-        .with_context(|| "Failed to parse policy")?;
+    let policy = toon_policy::parse(&policy_content).with_context(|| "Failed to parse policy")?;
 
-    info!("Parsed policy '{}' with {} rules", policy.name, policy.rules.len());
+    info!(
+        "Parsed policy '{}' with {} rules",
+        policy.name,
+        policy.rules.len()
+    );
 
     // Determine output format
     let output_format = match format.to_lowercase().as_str() {
@@ -39,7 +42,8 @@ pub fn run(
         format: output_format,
         include_comments: true,
     });
-    let output = compiler.compile(&policy)
+    let output = compiler
+        .compile(&policy)
         .with_context(|| "Failed to compile policy")?;
 
     // Write output
@@ -54,7 +58,8 @@ pub fn run(
         let lock_path = format!("{}.lock", policy_path.trim_end_matches(".toon"));
         let lock_path = Path::new(&lock_path);
 
-        lockfile.save(lock_path)
+        lockfile
+            .save(lock_path)
             .with_context(|| format!("Failed to write lockfile: {}", lock_path.display()))?;
 
         info!("Lockfile written to: {}", lock_path.display());
@@ -73,8 +78,7 @@ pub fn verify_lockfile(policy_path: &str, lock_path: &str) -> Result<bool> {
         .with_context(|| format!("Failed to read policy file: {policy_path}"))?;
 
     // Parse policy
-    let policy = toon_policy::parse(&policy_content)
-        .with_context(|| "Failed to parse policy")?;
+    let policy = toon_policy::parse(&policy_content).with_context(|| "Failed to parse policy")?;
 
     // Load lockfile
     let lockfile = Lockfile::load(lock_path)
@@ -82,7 +86,8 @@ pub fn verify_lockfile(policy_path: &str, lock_path: &str) -> Result<bool> {
 
     // Compile to get current output
     let compiler = Compiler::new();
-    let output = compiler.compile(&policy)
+    let output = compiler
+        .compile(&policy)
         .with_context(|| "Failed to compile policy")?;
 
     // Verify

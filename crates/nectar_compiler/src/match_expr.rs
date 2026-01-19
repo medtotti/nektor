@@ -251,18 +251,28 @@ fn parse_condition(input: &str) -> Result<Condition> {
     let input = input.trim();
 
     // Try each operator in order of length (longest first to avoid prefix conflicts)
-    let operators = [">=", "<=", "!=", "==", ">", "<", "=", "contains", "starts-with", "exists"];
+    let operators = [
+        ">=",
+        "<=",
+        "!=",
+        "==",
+        ">",
+        "<",
+        "=",
+        "contains",
+        "starts-with",
+        "exists",
+    ];
 
     for op_str in operators {
         if let Some(idx) = input.find(op_str) {
             let field = input[..idx].trim().to_string();
             let value_str = input[idx + op_str.len()..].trim();
 
-            let operator =
-                Operator::from_str(op_str).ok_or_else(|| Error::InvalidMatch {
-                    expr: input.to_string(),
-                    reason: format!("unknown operator: {op_str}"),
-                })?;
+            let operator = Operator::from_str(op_str).ok_or_else(|| Error::InvalidMatch {
+                expr: input.to_string(),
+                reason: format!("unknown operator: {op_str}"),
+            })?;
 
             // Handle exists operator (no value needed)
             if operator == Operator::Exists {

@@ -32,8 +32,13 @@ pub fn generate_waggle_report(policy: &Policy) -> String {
     report.push_str("Rules are evaluated in priority order (highest first).\n\n");
 
     for (i, rule) in policy.rules.iter().enumerate() {
-        report.push_str(&format!("### {}. {} (priority: {})\n\n", i + 1, rule.name, rule.priority));
-        
+        report.push_str(&format!(
+            "### {}. {} (priority: {})\n\n",
+            i + 1,
+            rule.name,
+            rule.priority
+        ));
+
         if let Some(desc) = &rule.description {
             report.push_str(&format!("{}\n\n", desc));
         }
@@ -45,30 +50,54 @@ pub fn generate_waggle_report(policy: &Policy) -> String {
 
     // Summary
     report.push_str("## Summary\n\n");
-    
-    let keep_rules: Vec<_> = policy.rules.iter()
+
+    let keep_rules: Vec<_> = policy
+        .rules
+        .iter()
         .filter(|r| matches!(r.action, toon_policy::Action::Keep))
         .collect();
-    let sample_rules: Vec<_> = policy.rules.iter()
+    let sample_rules: Vec<_> = policy
+        .rules
+        .iter()
         .filter(|r| matches!(r.action, toon_policy::Action::Sample(_)))
         .collect();
-    let drop_rules: Vec<_> = policy.rules.iter()
+    let drop_rules: Vec<_> = policy
+        .rules
+        .iter()
         .filter(|r| matches!(r.action, toon_policy::Action::Drop))
         .collect();
 
     if !keep_rules.is_empty() {
         report.push_str("**Always kept**: ");
-        report.push_str(&keep_rules.iter().map(|r| r.name.as_str()).collect::<Vec<_>>().join(", "));
+        report.push_str(
+            &keep_rules
+                .iter()
+                .map(|r| r.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
         report.push('\n');
     }
     if !sample_rules.is_empty() {
         report.push_str("**Sampled**: ");
-        report.push_str(&sample_rules.iter().map(|r| r.name.as_str()).collect::<Vec<_>>().join(", "));
+        report.push_str(
+            &sample_rules
+                .iter()
+                .map(|r| r.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
         report.push('\n');
     }
     if !drop_rules.is_empty() {
         report.push_str("**Dropped**: ");
-        report.push_str(&drop_rules.iter().map(|r| r.name.as_str()).collect::<Vec<_>>().join(", "));
+        report.push_str(
+            &drop_rules
+                .iter()
+                .map(|r| r.name.as_str())
+                .collect::<Vec<_>>()
+                .join(", "),
+        );
         report.push('\n');
     }
 
@@ -93,7 +122,7 @@ mod tests {
         let mut policy = Policy::new("test-policy");
         policy.add_rule(
             Rule::new("keep-errors", "status >= 500", Action::Keep, 100)
-                .with_description("Retain all HTTP 5xx errors for debugging")
+                .with_description("Retain all HTTP 5xx errors for debugging"),
         );
         policy.add_rule(Rule::new("sample-rest", "true", Action::Sample(0.01), 0));
 

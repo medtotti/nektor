@@ -334,13 +334,10 @@ fn parse_header(line: &str, line_num: usize) -> Result<Header> {
 
     // Check for count [N]
     let (count, fields_start) = if line[name_end..].starts_with('[') {
-        let bracket_end = line[name_end..]
-            .find(']')
-            .ok_or_else(|| Error::Parse {
-                line: line_num,
-                reason: "unclosed '[' in header".to_string(),
-            })?
-            + name_end;
+        let bracket_end = line[name_end..].find(']').ok_or_else(|| Error::Parse {
+            line: line_num,
+            reason: "unclosed '[' in header".to_string(),
+        })? + name_end;
 
         let count_str = &line[name_end + 1..bracket_end];
         let count: usize = count_str.parse().map_err(|_| Error::Parse {
@@ -362,7 +359,10 @@ fn parse_header(line: &str, line_num: usize) -> Result<Header> {
     }
 
     let fields_str = &line[fields_start + 1..line.len() - 1];
-    let fields: Vec<String> = fields_str.split(',').map(|s| s.trim().to_string()).collect();
+    let fields: Vec<String> = fields_str
+        .split(',')
+        .map(|s| s.trim().to_string())
+        .collect();
 
     if fields.is_empty() {
         return Err(Error::Parse {
@@ -552,7 +552,7 @@ mod tests {
 
     #[test]
     fn parse_simple_policy() {
-        let input = r#"
+        let input = r"
 nectar_policy{version,name,budget_per_second,rules}:
   1
   test-policy
@@ -560,7 +560,7 @@ nectar_policy{version,name,budget_per_second,rules}:
   rules[2]{name,description,match,action,priority}:
     keep-errors,Keep all errors,http.status >= 500,keep,100
     sample-rest,Sample remaining,true,sample(0.01),0
-"#;
+";
 
         let policy = parse(input).unwrap();
         assert_eq!(policy.version, 1);
@@ -602,7 +602,7 @@ nectar_policy{version,name,budget_per_second,rules}:
 
     #[test]
     fn parse_policy_count_mismatch() {
-        let input = r#"
+        let input = r"
 nectar_policy{version,name,budget_per_second,rules}:
   1
   test-policy
@@ -610,7 +610,7 @@ nectar_policy{version,name,budget_per_second,rules}:
   rules[3]{name,description,match,action,priority}:
     keep-errors,Keep errors,status >= 500,keep,100
     sample-rest,Sample remaining,true,sample(0.01),0
-"#;
+";
 
         let result = parse(input);
         assert!(matches!(
@@ -624,12 +624,12 @@ nectar_policy{version,name,budget_per_second,rules}:
 
     #[test]
     fn parse_policy_missing_name() {
-        let input = r#"
+        let input = r"
 nectar_policy{version,budget_per_second,rules}:
   1
   5000
   rules[0]{name,description,match,action,priority}:
-"#;
+";
 
         let result = parse(input);
         assert!(matches!(result, Err(Error::MissingField(_))));

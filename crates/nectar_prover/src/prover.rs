@@ -94,7 +94,11 @@ impl Prover {
         if violations.is_empty() {
             Ok(ProverResult::approved(checks_passed))
         } else {
-            Ok(ProverResult::rejected(violations, checks_passed, checks_total))
+            Ok(ProverResult::rejected(
+                violations,
+                checks_passed,
+                checks_total,
+            ))
         }
     }
 }

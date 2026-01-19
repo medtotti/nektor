@@ -54,7 +54,7 @@ pub fn check_must_keep_coverage(
     corpus: &Corpus,
 ) -> std::result::Result<(), Violation> {
     let errors = corpus.errors();
-    
+
     if errors.is_empty() {
         return Ok(());
     }

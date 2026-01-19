@@ -6,6 +6,7 @@ members = [
     "crates/nectar_claude",
     "crates/nectar_prover",
     "crates/nectar_compiler",
+    "crates/nectar_vopr",
     "cmd/nectar",
 ]
 
@@ -56,6 +57,11 @@ nectar_corpus = { path = "crates/nectar_corpus" }
 nectar_claude = { path = "crates/nectar_claude" }
 nectar_prover = { path = "crates/nectar_prover" }
 nectar_compiler = { path = "crates/nectar_compiler" }
+nectar_vopr = { path = "crates/nectar_vopr" }
+
+# Deterministic randomness
+rand = "0.8"
+rand_chacha = "0.3"
 
 [workspace.lints.rust]
 unsafe_code = "deny"

@@ -45,7 +45,12 @@ impl Corpus {
         F: Fn(&Trace) -> bool,
     {
         Self {
-            traces: self.traces.iter().filter(|t| predicate(t)).cloned().collect(),
+            traces: self
+                .traces
+                .iter()
+                .filter(|t| predicate(t))
+                .cloned()
+                .collect(),
         }
     }
 
@@ -122,13 +127,11 @@ mod tests {
 
     #[test]
     fn corpus_encode_toon() {
-        let corpus: Corpus = vec![
-            Trace::new("abc")
-                .with_duration(Duration::from_millis(150))
-                .with_status(200)
-                .with_service("api")
-                .with_endpoint("/users"),
-        ]
+        let corpus: Corpus = vec![Trace::new("abc")
+            .with_duration(Duration::from_millis(150))
+            .with_status(200)
+            .with_service("api")
+            .with_endpoint("/users")]
         .into_iter()
         .collect();
 

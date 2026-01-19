@@ -108,25 +108,27 @@ async fn main() -> Result<()> {
     } else {
         EnvFilter::new("info")
     };
-    tracing_subscriber::fmt()
-        .with_env_filter(filter)
-        .init();
+    tracing_subscriber::fmt().with_env_filter(filter).init();
 
     match cli.command {
-        Commands::Compile { policy, output, format, lock } => {
-            commands::compile::run(&policy, &output, &format, lock)
-        }
-        Commands::Prove { policy, corpus, strict } => {
-            commands::prove::run(&policy, &corpus, strict)
-        }
-        Commands::Propose { intent, corpus, policy, output } => {
-            commands::propose::run(&intent, corpus.as_deref(), policy.as_deref(), &output).await
-        }
-        Commands::Explain { policy, output } => {
-            commands::explain::run(&policy, &output)
-        }
-        Commands::Init { path } => {
-            commands::init::run(&path)
-        }
+        Commands::Compile {
+            policy,
+            output,
+            format,
+            lock,
+        } => commands::compile::run(&policy, &output, &format, lock),
+        Commands::Prove {
+            policy,
+            corpus,
+            strict,
+        } => commands::prove::run(&policy, &corpus, strict),
+        Commands::Propose {
+            intent,
+            corpus,
+            policy,
+            output,
+        } => commands::propose::run(&intent, corpus.as_deref(), policy.as_deref(), &output).await,
+        Commands::Explain { policy, output } => commands::explain::run(&policy, &output),
+        Commands::Init { path } => commands::init::run(&path),
     }
 }

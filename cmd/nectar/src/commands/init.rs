@@ -8,7 +8,7 @@ use tracing::info;
 /// Runs the init command.
 pub fn run(path: &str) -> Result<()> {
     let project_path = Path::new(path);
-    
+
     info!("Initializing Nectar project at: {}", project_path.display());
 
     // Create directories
@@ -31,8 +31,7 @@ pub fn run(path: &str) -> Result<()> {
     if policy_path.exists() {
         info!("Skipped: {} (already exists)", policy_path.display());
     } else {
-        fs::write(&policy_path, default_policy)
-            .with_context(|| "Failed to create policy.toon")?;
+        fs::write(&policy_path, default_policy).with_context(|| "Failed to create policy.toon")?;
         info!("Created: {}", policy_path.display());
     }
 
@@ -54,8 +53,7 @@ waggle.md
             let mut content = existing;
             content.push('\n');
             content.push_str(gitignore_content);
-            fs::write(&gitignore_path, content)
-                .with_context(|| "Failed to update .gitignore")?;
+            fs::write(&gitignore_path, content).with_context(|| "Failed to update .gitignore")?;
             info!("Updated: {}", gitignore_path.display());
         }
     } else {
@@ -101,8 +99,7 @@ nectar explain
 
     let readme_path = project_path.join("README.md");
     if !readme_path.exists() {
-        fs::write(&readme_path, readme_content)
-            .with_context(|| "Failed to create README.md")?;
+        fs::write(&readme_path, readme_content).with_context(|| "Failed to create README.md")?;
         info!("Created: {}", readme_path.display());
     }
 

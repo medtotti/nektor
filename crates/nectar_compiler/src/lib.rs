@@ -22,13 +22,13 @@
 #![allow(clippy::format_push_string)]
 #![allow(clippy::uninlined_format_args)]
 
-pub mod error;
 pub mod compiler;
+pub mod error;
 pub mod lockfile;
 pub mod match_expr;
 pub mod refinery;
 pub mod waggle;
 
+pub use compiler::{CompileOptions, Compiler, OutputFormat};
 pub use error::{Error, Result};
-pub use compiler::{Compiler, CompileOptions, OutputFormat};
 pub use lockfile::Lockfile;

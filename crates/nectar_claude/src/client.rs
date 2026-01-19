@@ -172,9 +172,10 @@ IMPORTANT:
             )));
         }
 
-        let msg_response: MessageResponse = response.json().await.map_err(|e| {
-            Error::ParseError(format!("Failed to parse API response: {e}"))
-        })?;
+        let msg_response: MessageResponse = response
+            .json()
+            .await
+            .map_err(|e| Error::ParseError(format!("Failed to parse API response: {e}")))?;
 
         info!(
             "Received response: {} input tokens, {} output tokens",
@@ -185,9 +186,9 @@ IMPORTANT:
     }
 
     fn parse_policy_response(response: &MessageResponse) -> Result<Policy> {
-        let toon = response.extract_toon().ok_or_else(|| {
-            Error::ParseError("No TOON code block found in response".to_string())
-        })?;
+        let toon = response
+            .extract_toon()
+            .ok_or_else(|| Error::ParseError("No TOON code block found in response".to_string()))?;
 
         debug!("Extracted TOON:\n{}", toon);
 
@@ -204,7 +205,10 @@ IMPORTANT:
             ));
         }
 
-        info!("Successfully parsed policy with {} rules", policy.rules.len());
+        info!(
+            "Successfully parsed policy with {} rules",
+            policy.rules.len()
+        );
         Ok(policy)
     }
 }
@@ -235,7 +239,7 @@ mod tests {
             model: "claude-sonnet-4-20250514".to_string(),
             stop_reason: Some("end_turn".to_string()),
             content: vec![crate::response::ContentBlock::Text {
-                text: r#"Here's the policy:
+                text: r"Here's the policy:
 
 ```toon
 nectar_policy{version,name,budget_per_second,rules}:
@@ -246,7 +250,7 @@ nectar_policy{version,name,budget_per_second,rules}:
     keep-errors,Keep all errors,http.status >= 500,keep,100
     sample-rest,Sample remaining traffic,true,sample(0.01),0
 ```
-"#
+"
                 .to_string(),
             }],
             usage: crate::response::Usage {
@@ -268,7 +272,7 @@ nectar_policy{version,name,budget_per_second,rules}:
             model: "claude-sonnet-4-20250514".to_string(),
             stop_reason: Some("end_turn".to_string()),
             content: vec![crate::response::ContentBlock::Text {
-                text: r#"```toon
+                text: r"```toon
 nectar_policy{version,name,budget_per_second,rules}:
   1
   test-policy
@@ -276,7 +280,7 @@ nectar_policy{version,name,budget_per_second,rules}:
   rules[1]{name,description,match,action,priority}:
     keep-errors,Keep all errors,http.status >= 500,keep,100
 ```
-"#
+"
                 .to_string(),
             }],
             usage: crate::response::Usage {

@@ -55,7 +55,7 @@ impl MessageResponse {
     #[must_use]
     pub fn extract_toon(&self) -> Option<String> {
         let text = self.text();
-        
+
         // Look for ```toon ... ``` blocks
         if let Some(start) = text.find("```toon") {
             let content_start = start + 7;
@@ -64,7 +64,7 @@ impl MessageResponse {
                 return Some(toon.to_string());
             }
         }
-        
+
         // Fallback: look for ``` ... ``` blocks
         if let Some(start) = text.find("```") {
             let content_start = start + 3;
@@ -77,7 +77,7 @@ impl MessageResponse {
                 return Some(toon.to_string());
             }
         }
-        
+
         None
     }
 }

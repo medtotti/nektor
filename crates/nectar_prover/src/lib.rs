@@ -25,10 +25,10 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 
+pub mod checks;
 pub mod error;
 pub mod prover;
 pub mod result;
-pub mod checks;
 
 pub use error::{Error, Result};
 pub use prover::{Prover, ProverConfig};

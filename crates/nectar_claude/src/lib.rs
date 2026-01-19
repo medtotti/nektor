@@ -20,10 +20,10 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 
-pub mod error;
 pub mod client;
+pub mod error;
 pub mod prompt;
 pub mod response;
 
-pub use error::{Error, Result};
 pub use client::{Client, ClientConfig};
+pub use error::{Error, Result};

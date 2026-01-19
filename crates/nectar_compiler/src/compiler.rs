@@ -60,12 +60,8 @@ impl Compiler {
         let config = self.to_refinery_config(policy)?;
 
         match self.options.format {
-            OutputFormat::Yaml => {
-                serde_yaml::to_string(&config).map_err(Error::from)
-            }
-            OutputFormat::Json => {
-                serde_json::to_string_pretty(&config).map_err(Error::from)
-            }
+            OutputFormat::Yaml => serde_yaml::to_string(&config).map_err(Error::from),
+            OutputFormat::Json => serde_json::to_string_pretty(&config).map_err(Error::from),
         }
     }
 

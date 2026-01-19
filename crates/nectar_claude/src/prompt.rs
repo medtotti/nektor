@@ -47,7 +47,7 @@ impl<'a> PromptBuilder<'a> {
     /// Returns an error if required fields are missing.
     pub fn build(self) -> Result<String> {
         let intent = self.intent.unwrap_or("Generate a sampling policy");
-        
+
         let corpus_section = if let Some(corpus) = self.corpus {
             let toon = corpus.encode_toon()?;
             format!(

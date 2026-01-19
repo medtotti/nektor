@@ -22,12 +22,12 @@
 #![allow(clippy::must_use_candidate)]
 #![allow(clippy::items_after_statements)]
 
-pub mod error;
-pub mod trace;
 pub mod corpus;
 pub mod encoder;
+pub mod error;
 pub mod loader;
+pub mod trace;
 
+pub use corpus::Corpus;
 pub use error::{Error, Result};
 pub use trace::Trace;
-pub use corpus::Corpus;
