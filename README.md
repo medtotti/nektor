@@ -1,5 +1,10 @@
 # Nectar
 
+[![Rust](https://img.shields.io/badge/rust-2021-orange.svg)](https://www.rust-lang.org/)
+[![License](https://img.shields.io/badge/license-MIT%2FApache--2.0-blue.svg)](LICENSE)
+
+<!-- GitHub Topics: observability, sampling, honeycomb, refinery, telemetry, tracing, opentelemetry, rust, ai, llm, claude, anthropic, apm, monitoring, tail-sampling, distributed-tracing, policy-engine -->
+
 AI-native sampling policy engine for [Honeycomb Refinery](https://docs.honeycomb.io/manage-data-volume/sample/honeycomb-refinery/).
 
 Nectar uses Claude to generate and refine tail-based sampling policies from natural language intent and trace exemplars. Policies are expressed in TOON format, verified against historical data, and compiled to Refinery-compatible rules.

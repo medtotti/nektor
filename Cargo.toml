@@ -17,6 +17,9 @@ authors = ["Nectar Contributors"]
 license = "MIT OR Apache-2.0"
 repository = "https://github.com/example/nectar"
 rust-version = "1.75"
+description = "AI-native sampling policy engine for Honeycomb Refinery"
+keywords = ["observability", "sampling", "honeycomb", "telemetry", "tracing"]
+categories = ["development-tools::profiling", "config"]
 
 [workspace.dependencies]
 # Async runtime
