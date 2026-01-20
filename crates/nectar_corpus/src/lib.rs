@@ -46,11 +46,15 @@ pub mod error;
 pub mod fixtures;
 pub mod ingestor;
 pub mod loader;
+pub mod reservoir;
 pub mod span;
 pub mod trace;
 
 pub use corpus::Corpus;
 pub use error::{Error, Result};
 pub use ingestor::{IngestorRegistry, TraceIngestor};
+pub use reservoir::{
+    EvictionEvent, EvictionReason, Reservoir, ReservoirConfig, ReservoirStats, SamplingStrategy,
+};
 pub use span::{AttributeValue, Span, SpanKind, SpanStatus, StatusCode};
 pub use trace::Trace;

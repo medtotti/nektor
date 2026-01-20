@@ -6,7 +6,7 @@
 #![allow(dead_code)]
 
 use anyhow::{Context, Result};
-use nectar_corpus::Corpus;
+use nectar_corpus::{Corpus, Reservoir, ReservoirConfig, SamplingStrategy};
 use std::path::Path;
 use std::sync::atomic::{AtomicBool, Ordering};
 use std::sync::Arc;
@@ -36,6 +36,12 @@ pub struct WatchConfig {
     pub corpus_path: Option<String>,
     /// Webhook URL for alerts.
     pub webhook_url: Option<String>,
+    /// Sampling strategy for reservoir.
+    pub sampling_strategy: SamplingStrategy,
+    /// Whether to preserve error traces in stratified sampling.
+    pub preserve_errors: bool,
+    /// Threshold for slow traces (in milliseconds).
+    pub slow_threshold_ms: Option<u64>,
 }
 
 impl Default for WatchConfig {
@@ -50,6 +56,9 @@ impl Default for WatchConfig {
             max_corpus_size: 10_000,
             corpus_path: None,
             webhook_url: None,
+            sampling_strategy: SamplingStrategy::Stratified,
+            preserve_errors: true,
+            slow_threshold_ms: Some(5000), // 5 seconds
         }
     }
 }
@@ -113,12 +122,8 @@ pub struct RefinementSuggestion {
 /// Watch mode state.
 #[derive(Debug)]
 pub struct WatchState {
-    /// Rolling corpus of trace exemplars.
-    pub corpus: Corpus,
-    /// Number of traces seen.
-    pub traces_seen: u64,
-    /// Number of traces kept.
-    pub traces_kept: u64,
+    /// Rolling reservoir of trace exemplars with bounded size.
+    pub reservoir: Reservoir,
     /// Number of drift events.
     pub drift_events: u64,
     /// Number of budget violations.
@@ -127,12 +132,19 @@ pub struct WatchState {
     pub started_at: chrono::DateTime<chrono::Utc>,
 }
 
-impl Default for WatchState {
-    fn default() -> Self {
+impl WatchState {
+    /// Creates a new watch state with the given configuration.
+    fn new(config: &WatchConfig) -> Self {
+        let mut reservoir_config = ReservoirConfig::new(config.max_corpus_size)
+            .with_strategy(config.sampling_strategy)
+            .with_preserve_errors(config.preserve_errors);
+
+        if let Some(threshold_ms) = config.slow_threshold_ms {
+            reservoir_config = reservoir_config.with_slow_threshold(Duration::from_millis(threshold_ms));
+        }
+
         Self {
-            corpus: Corpus::new(),
-            traces_seen: 0,
-            traces_kept: 0,
+            reservoir: Reservoir::new(reservoir_config),
             drift_events: 0,
             budget_violations: 0,
             started_at: chrono::Utc::now(),
@@ -153,9 +165,10 @@ impl Watcher {
     /// Creates a new watcher with the given configuration.
     pub fn new(config: WatchConfig) -> Self {
         let (event_tx, event_rx) = mpsc::channel(1000);
+        let state = WatchState::new(&config);
         Self {
             config,
-            state: WatchState::default(),
+            state,
             running: Arc::new(AtomicBool::new(false)),
             event_tx,
             event_rx,
@@ -235,18 +248,22 @@ impl Watcher {
         Ok(())
     }
 
-    /// Loads existing corpus from disk.
+    /// Loads existing corpus from disk into the reservoir.
     fn load_existing_corpus(&mut self, path: &str) -> Result<()> {
         let path = Path::new(path);
         if path.exists() {
-            if path.is_dir() {
-                self.state.corpus = Corpus::load_directory(path)
-                    .with_context(|| format!("Failed to load corpus from: {}", path.display()))?;
+            let corpus = if path.is_dir() {
+                Corpus::load_directory(path)
+                    .with_context(|| format!("Failed to load corpus from: {}", path.display()))?
             } else {
-                self.state.corpus = Corpus::load_file(path)
-                    .with_context(|| format!("Failed to load corpus file: {}", path.display()))?;
+                Corpus::load_file(path)
+                    .with_context(|| format!("Failed to load corpus file: {}", path.display()))?
+            };
+            let count = corpus.len();
+            for trace in corpus.into_traces() {
+                self.state.reservoir.add(trace);
             }
-            info!("Loaded {} existing traces", self.state.corpus.len());
+            info!("Loaded {} existing traces into reservoir", count);
         }
         Ok(())
     }
@@ -296,27 +313,25 @@ impl Watcher {
         }
     }
 
-    /// Handles a new trace.
+    /// Handles a new trace using reservoir sampling.
     fn handle_trace(&mut self, trace: nectar_corpus::Trace) {
-        self.state.traces_seen += 1;
-
-        // Add to corpus with reservoir sampling (placeholder - implemented in #9)
-        if self.state.corpus.len() < self.config.max_corpus_size {
-            self.state.corpus.add(trace);
-            self.state.traces_kept += 1;
-        } else {
-            // TODO: Implement reservoir sampling (#9)
-            // For now, just skip if at capacity
-            debug!("Corpus at capacity, skipping trace");
+        // Add to reservoir with automatic sampling
+        if let Some(eviction) = self.state.reservoir.add(trace) {
+            debug!(
+                "Evicted trace {} (reason: {:?})",
+                eviction.evicted_trace_id, eviction.reason
+            );
         }
 
         // Log progress periodically
-        if self.state.traces_seen % 1000 == 0 {
+        let stats = self.state.reservoir.stats();
+        if stats.total_seen % 1000 == 0 {
             info!(
-                "Traces: {} seen, {} kept, corpus size: {}",
-                self.state.traces_seen,
-                self.state.traces_kept,
-                self.state.corpus.len()
+                "Traces: {} seen, {} kept (errors: {}, slow: {})",
+                stats.total_seen,
+                stats.current_size,
+                stats.error_count,
+                stats.slow_count
             );
         }
     }
@@ -382,13 +397,17 @@ impl Watcher {
         info!("Shutting down watch mode...");
 
         let uptime = chrono::Utc::now() - self.state.started_at;
+        let stats = self.state.reservoir.stats();
+
         info!("Watch mode statistics:");
         info!("  Uptime: {}s", uptime.num_seconds());
-        info!("  Traces seen: {}", self.state.traces_seen);
-        info!("  Traces kept: {}", self.state.traces_kept);
+        info!("  Traces seen: {}", stats.total_seen);
+        info!("  Reservoir size: {}", stats.current_size);
+        info!("  Error traces: {}", stats.error_count);
+        info!("  Slow traces: {}", stats.slow_count);
+        info!("  Evictions: {}", stats.eviction_count);
         info!("  Drift events: {}", self.state.drift_events);
         info!("  Budget violations: {}", self.state.budget_violations);
-        info!("  Final corpus size: {}", self.state.corpus.len());
 
         // Save corpus if path provided
         if let Some(ref corpus_path) = self.config.corpus_path {
@@ -442,6 +461,10 @@ pub async fn run(
         max_corpus_size,
         corpus_path,
         webhook_url,
+        // Use stratified sampling by default to preserve errors and slow traces
+        sampling_strategy: SamplingStrategy::Stratified,
+        preserve_errors: true,
+        slow_threshold_ms: Some(5000), // 5 seconds
     };
 
     let mut watcher = Watcher::new(config);
