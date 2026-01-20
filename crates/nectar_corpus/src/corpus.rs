@@ -94,6 +94,49 @@ impl Corpus {
         self.traces
     }
 
+    /// Returns traces sorted by their start time.
+    ///
+    /// Traces with spans are sorted by the earliest span start time.
+    /// Traces without spans are placed at the beginning (start time = 0).
+    #[must_use]
+    pub fn sorted_by_time(&self) -> Vec<&Trace> {
+        let mut traces: Vec<_> = self.traces.iter().collect();
+        traces.sort_by_key(|t| t.start_time_ns().unwrap_or(0));
+        traces
+    }
+
+    /// Consumes the corpus and returns traces sorted by their start time.
+    #[must_use]
+    pub fn into_sorted_by_time(mut self) -> Vec<Trace> {
+        self.traces
+            .sort_by_key(|t| t.start_time_ns().unwrap_or(0));
+        self.traces
+    }
+
+    /// Returns the time range of the corpus in nanoseconds.
+    ///
+    /// Returns `(min_start_time, max_start_time)` or `None` if no traces have timestamps.
+    #[must_use]
+    pub fn time_range_ns(&self) -> Option<(u64, u64)> {
+        let mut min_time = u64::MAX;
+        let mut max_time = 0u64;
+        let mut found = false;
+
+        for trace in &self.traces {
+            if let Some(start) = trace.start_time_ns() {
+                min_time = min_time.min(start);
+                max_time = max_time.max(start);
+                found = true;
+            }
+        }
+
+        if found {
+            Some((min_time, max_time))
+        } else {
+            None
+        }
+    }
+
     /// Ingests trace data from bytes with auto-detection.
     ///
     /// Uses the ingestor registry to auto-detect the format and parse traces.

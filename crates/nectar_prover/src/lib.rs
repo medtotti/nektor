@@ -64,6 +64,7 @@ pub mod analysis;
 pub mod checks;
 pub mod error;
 pub mod prover;
+pub mod replay;
 pub mod result;
 pub mod simulation;
 pub mod traffic;
@@ -74,6 +75,10 @@ pub use analysis::{
 };
 pub use error::{Error, Result};
 pub use prover::{AnalysisResult, Prover, ProverConfig};
+pub use replay::{
+    ReplayConfig, ReplayResult, ReplaySpeed, ReplaySummary, ReplayTimeRange, ReplayWindow,
+    Replayer, TimeWindow,
+};
 pub use result::{ProverResult, Severity, Violation, Warning};
 pub use simulation::{
     BudgetViolation, Recommendation, RecommendationKind, SimulationPoint, SimulationResult,

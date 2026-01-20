@@ -151,6 +151,15 @@ impl Trace {
         &self.spans
     }
 
+    /// Returns the start time of this trace in nanoseconds since epoch.
+    ///
+    /// This is the earliest `start_time_ns` of any span in the trace.
+    /// Returns `None` if the trace has no spans.
+    #[must_use]
+    pub fn start_time_ns(&self) -> Option<u64> {
+        self.spans.iter().map(|s| s.start_time_ns).min()
+    }
+
     /// Sets the duration.
     #[must_use]
     pub const fn with_duration(mut self, duration: Duration) -> Self {

@@ -232,6 +232,55 @@ impl Prover {
 
         Ok((prover_result, sim_result))
     }
+
+    /// Replays corpus traces in timestamp order.
+    ///
+    /// This method replays traces from the corpus in chronological order
+    /// to simulate historical traffic patterns and verify budget compliance.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the corpus is empty.
+    pub fn replay_corpus(
+        &self,
+        policy: &Policy,
+        corpus: &Corpus,
+        config: crate::replay::ReplayConfig,
+    ) -> Result<crate::replay::ReplayResult> {
+        let replayer = crate::replay::Replayer::new(config);
+        replayer.replay(policy, corpus)
+    }
+
+    /// Replays corpus traces with default settings.
+    ///
+    /// Uses maximum speed and 1-second windows.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the corpus is empty.
+    pub fn replay_corpus_default(
+        &self,
+        policy: &Policy,
+        corpus: &Corpus,
+    ) -> Result<crate::replay::ReplayResult> {
+        let config = crate::replay::ReplayConfig::new();
+        self.replay_corpus(policy, corpus, config)
+    }
+
+    /// Replays corpus traces with budget checking.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the corpus is empty.
+    pub fn replay_corpus_with_budget(
+        &self,
+        policy: &Policy,
+        corpus: &Corpus,
+        budget_per_second: f64,
+    ) -> Result<crate::replay::ReplayResult> {
+        let config = crate::replay::ReplayConfig::new().with_budget(budget_per_second);
+        self.replay_corpus(policy, corpus, config)
+    }
 }
 
 /// Combined result from mode-aware analysis.
