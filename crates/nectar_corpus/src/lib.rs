@@ -4,6 +4,7 @@
 //! - Trace exemplar storage and retrieval
 //! - TOON encoding of trace data for Claude
 //! - Corpus filtering and sampling
+//! - Pluggable trace ingestion (OTLP, Honeycomb, JSON)
 //!
 //! # Example
 //!
@@ -11,8 +12,25 @@
 //! use nectar_corpus::{Corpus, Trace};
 //!
 //! let mut corpus = Corpus::new();
-//! corpus.add_trace(trace);
+//! corpus.add(trace);
 //! let toon = corpus.encode_toon()?;
+//! ```
+//!
+//! # Format Ingestion
+//!
+//! The crate supports multiple trace formats through the ingestor framework:
+//!
+//! ```rust,ignore
+//! use nectar_corpus::Corpus;
+//!
+//! // Auto-detect format from bytes
+//! let corpus = Corpus::ingest(&data)?;
+//!
+//! // Ingest with content-type hint
+//! let corpus = Corpus::ingest_with_content_type(&data, Some("application/json"))?;
+//!
+//! // Ingest from a file
+//! let corpus = Corpus::ingest_file("traces.json")?;
 //! ```
 
 #![deny(clippy::all)]
@@ -26,9 +44,13 @@ pub mod corpus;
 pub mod encoder;
 pub mod error;
 pub mod fixtures;
+pub mod ingestor;
 pub mod loader;
+pub mod span;
 pub mod trace;
 
 pub use corpus::Corpus;
 pub use error::{Error, Result};
+pub use ingestor::{IngestorRegistry, TraceIngestor};
+pub use span::{AttributeValue, Span, SpanKind, SpanStatus, StatusCode};
 pub use trace::Trace;

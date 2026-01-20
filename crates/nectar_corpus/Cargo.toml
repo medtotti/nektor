@@ -7,6 +7,10 @@ authors.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
+[features]
+default = []
+otlp = ["opentelemetry-proto", "prost", "hex"]
+
 [dependencies]
 toon_policy.workspace = true
 serde.workspace = true
@@ -15,6 +19,11 @@ thiserror.workspace = true
 tracing.workspace = true
 rand.workspace = true
 rand_chacha.workspace = true
+
+# OTLP support (optional)
+opentelemetry-proto = { version = "0.31", features = ["gen-tonic", "trace"], optional = true }
+prost = { version = "0.14", optional = true }
+hex = { version = "0.4", optional = true }
 
 [dev-dependencies]
 proptest.workspace = true

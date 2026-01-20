@@ -1,7 +1,9 @@
 //! Corpus container and operations.
 
 use crate::error::Result;
+use crate::ingestor::IngestorRegistry;
 use crate::trace::Trace;
+use std::path::Path;
 
 /// A collection of trace exemplars.
 #[derive(Debug, Clone, Default)]
@@ -84,6 +86,48 @@ impl Corpus {
                 .collect::<Vec<_>>()
                 .join("\n")
         ))
+    }
+
+    /// Consumes the corpus and returns the traces.
+    #[must_use]
+    pub fn into_traces(self) -> Vec<Trace> {
+        self.traces
+    }
+
+    /// Ingests trace data from bytes with auto-detection.
+    ///
+    /// Uses the ingestor registry to auto-detect the format and parse traces.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the format is unknown or parsing fails.
+    pub fn ingest(data: &[u8]) -> Result<Self> {
+        Self::ingest_with_content_type(data, None)
+    }
+
+    /// Ingests trace data with a content-type hint.
+    ///
+    /// The content-type is used to help identify the format.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if parsing fails.
+    pub fn ingest_with_content_type(data: &[u8], content_type: Option<&str>) -> Result<Self> {
+        let registry = IngestorRegistry::new();
+        let traces = registry.ingest(data, content_type)?;
+        Ok(Self { traces })
+    }
+
+    /// Ingests trace data from a file with auto-detection.
+    ///
+    /// The format is auto-detected from the file contents.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read or parsing fails.
+    pub fn ingest_file(path: impl AsRef<Path>) -> Result<Self> {
+        let data = std::fs::read(path)?;
+        Self::ingest(&data)
     }
 }
 
