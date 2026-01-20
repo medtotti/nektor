@@ -96,6 +96,45 @@ enum Commands {
         #[arg(default_value = ".")]
         path: String,
     },
+
+    /// Watch production traffic and suggest policy refinements
+    Watch {
+        /// Path to policy.toon file
+        #[arg(short, long, default_value = "policy.toon")]
+        policy: String,
+
+        /// OTLP gRPC receiver port
+        #[arg(long)]
+        otlp_port: Option<u16>,
+
+        /// Honeycomb dataset to poll
+        #[arg(long)]
+        honeycomb_dataset: Option<String>,
+
+        /// Honeycomb API key (or set `HONEYCOMB_API_KEY` env var)
+        #[arg(long)]
+        honeycomb_api_key: Option<String>,
+
+        /// Path to corpus directory for persistence
+        #[arg(short, long)]
+        corpus: Option<String>,
+
+        /// Dry-run mode (suggest only, don't apply changes)
+        #[arg(long)]
+        dry_run: bool,
+
+        /// Interval in seconds between drift checks
+        #[arg(long, default_value = "60")]
+        check_interval: u64,
+
+        /// Maximum corpus size for reservoir sampling
+        #[arg(long, default_value = "10000")]
+        max_corpus_size: usize,
+
+        /// Webhook URL for alerts
+        #[arg(long)]
+        webhook_url: Option<String>,
+    },
 }
 
 #[tokio::main]
@@ -130,5 +169,29 @@ async fn main() -> Result<()> {
         } => commands::propose::run(&intent, corpus.as_deref(), policy.as_deref(), &output).await,
         Commands::Explain { policy, output } => commands::explain::run(&policy, &output),
         Commands::Init { path } => commands::init::run(&path),
+        Commands::Watch {
+            policy,
+            otlp_port,
+            honeycomb_dataset,
+            honeycomb_api_key,
+            corpus,
+            dry_run,
+            check_interval,
+            max_corpus_size,
+            webhook_url,
+        } => {
+            commands::watch::run(
+                &policy,
+                otlp_port,
+                honeycomb_dataset,
+                honeycomb_api_key,
+                corpus,
+                dry_run,
+                check_interval,
+                max_corpus_size,
+                webhook_url,
+            )
+            .await
+        }
     }
 }

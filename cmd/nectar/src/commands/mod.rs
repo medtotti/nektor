@@ -5,3 +5,4 @@ pub mod explain;
 pub mod init;
 pub mod propose;
 pub mod prove;
+pub mod watch;
