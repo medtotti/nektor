@@ -18,6 +18,24 @@
 //! let result = prover.verify(&policy, &corpus)?;
 //! assert!(result.is_approved());
 //! ```
+//!
+//! # Traffic Pattern Simulation
+//!
+//! The prover can simulate policy behavior against real traffic patterns:
+//!
+//! ```rust,ignore
+//! use nectar_prover::{Prover, ProverConfig, TrafficPattern};
+//!
+//! let prover = Prover::new(ProverConfig { max_budget: Some(10000), ..Default::default() });
+//! let traffic = TrafficPattern::from_csv_file("traffic.csv")?;
+//! let result = prover.simulate_traffic(&policy, &traffic)?;
+//!
+//! if !result.is_compliant() {
+//!     for violation in &result.violations {
+//!         println!("Budget exceeded at {}: {} events/sec", violation.timestamp, violation.actual_events);
+//!     }
+//! }
+//! ```
 
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
@@ -29,7 +47,14 @@ pub mod checks;
 pub mod error;
 pub mod prover;
 pub mod result;
+pub mod simulation;
+pub mod traffic;
 
 pub use error::{Error, Result};
 pub use prover::{Prover, ProverConfig};
 pub use result::{ProverResult, Severity, Violation, Warning};
+pub use simulation::{
+    BudgetViolation, Recommendation, RecommendationKind, SimulationPoint, SimulationResult,
+    SimulationSummary, Simulator,
+};
+pub use traffic::{TrafficPattern, TrafficPoint, TrafficStats};

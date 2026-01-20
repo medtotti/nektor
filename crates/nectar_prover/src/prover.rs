@@ -3,7 +3,10 @@
 use crate::checks;
 use crate::error::{Error, Result};
 use crate::result::{ProverResult, Violation};
+use crate::simulation::{SimulationResult, Simulator};
+use crate::traffic::TrafficPattern;
 use nectar_corpus::Corpus;
+use std::path::Path;
 use toon_policy::Policy;
 
 /// Policy prover that validates policies before compilation.
@@ -100,6 +103,63 @@ impl Prover {
                 checks_total,
             ))
         }
+    }
+
+    /// Simulates a policy against a traffic pattern.
+    ///
+    /// This method replays the traffic pattern against the policy to verify
+    /// budget compliance under realistic conditions.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the traffic pattern is invalid.
+    pub fn simulate_traffic(
+        &self,
+        policy: &Policy,
+        traffic: &TrafficPattern,
+    ) -> Result<SimulationResult> {
+        if traffic.is_empty() {
+            return Err(Error::InvalidTraffic("traffic pattern is empty".to_string()));
+        }
+
+        #[allow(clippy::cast_precision_loss)]
+        let budget = self.config.max_budget.unwrap_or(u64::MAX) as f64;
+        let simulator = Simulator::new(budget);
+
+        Ok(simulator.simulate(policy, traffic))
+    }
+
+    /// Simulates a policy against a traffic pattern from a CSV file.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the file cannot be read or parsed.
+    pub fn simulate_traffic_file(
+        &self,
+        policy: &Policy,
+        path: impl AsRef<Path>,
+    ) -> Result<SimulationResult> {
+        let traffic = TrafficPattern::from_csv_file(path)?;
+        self.simulate_traffic(policy, &traffic)
+    }
+
+    /// Verifies a policy with traffic pattern simulation.
+    ///
+    /// Combines standard verification with traffic pattern replay.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if verification or simulation fails.
+    pub fn verify_with_traffic(
+        &self,
+        policy: &Policy,
+        corpus: &Corpus,
+        traffic: &TrafficPattern,
+    ) -> Result<(ProverResult, SimulationResult)> {
+        let prover_result = self.verify(policy, corpus)?;
+        let sim_result = self.simulate_traffic(policy, traffic)?;
+
+        Ok((prover_result, sim_result))
     }
 }
 
