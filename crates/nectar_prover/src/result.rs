@@ -122,14 +122,24 @@ impl ProverResult {
 }
 
 impl Violation {
+    /// Creates a new violation with the given severity.
+    #[must_use]
+    pub fn new(
+        severity: Severity,
+        check: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
+        Self {
+            check: check.into(),
+            severity,
+            message: message.into(),
+        }
+    }
+
     /// Creates a new critical violation.
     #[must_use]
     pub fn critical(check: impl Into<String>, message: impl Into<String>) -> Self {
-        Self {
-            check: check.into(),
-            severity: Severity::Critical,
-            message: message.into(),
-        }
+        Self::new(Severity::Critical, check, message)
     }
 }
 

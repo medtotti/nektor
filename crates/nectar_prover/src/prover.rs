@@ -1,5 +1,6 @@
 //! Main prover implementation.
 
+use crate::analysis::{AnalysisMode, Confidence, StaticAnalysisResult, StaticAnalyzer};
 use crate::checks;
 use crate::error::{Error, Result};
 use crate::result::{ProverResult, Violation};
@@ -13,6 +14,7 @@ use toon_policy::Policy;
 #[derive(Debug, Clone)]
 pub struct Prover {
     config: ProverConfig,
+    static_analyzer: StaticAnalyzer,
 }
 
 /// Configuration for the prover.
@@ -22,6 +24,8 @@ pub struct ProverConfig {
     pub max_budget: Option<u64>,
     /// Whether to require explicit error handling.
     pub require_error_handling: bool,
+    /// Analysis mode to use.
+    pub analysis_mode: AnalysisMode,
 }
 
 impl Default for Prover {
@@ -34,7 +38,74 @@ impl Prover {
     /// Creates a new prover with the given configuration.
     #[must_use]
     pub const fn new(config: ProverConfig) -> Self {
-        Self { config }
+        Self {
+            config,
+            static_analyzer: StaticAnalyzer::new(),
+        }
+    }
+
+    /// Returns the analysis mode.
+    #[must_use]
+    pub const fn analysis_mode(&self) -> AnalysisMode {
+        self.config.analysis_mode
+    }
+
+    /// Performs static analysis only (fast path).
+    ///
+    /// This is O(rules) and suitable for rapid iteration.
+    #[must_use]
+    pub fn analyze_static(&self, policy: &Policy) -> StaticAnalysisResult {
+        self.static_analyzer.analyze(policy)
+    }
+
+    /// Performs mode-aware analysis on a policy.
+    ///
+    /// - Static mode: Fast rule analysis only
+    /// - Dynamic mode: Full traffic simulation (requires traffic pattern)
+    /// - Auto mode: Static first, dynamic if traffic provided
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the policy is fundamentally invalid.
+    pub fn analyze(
+        &self,
+        policy: &Policy,
+        corpus: &Corpus,
+        traffic: Option<&TrafficPattern>,
+    ) -> Result<AnalysisResult> {
+        let mode = self.config.analysis_mode;
+
+        // Perform static analysis if needed
+        let static_result = if mode.includes_static() {
+            Some(self.analyze_static(policy))
+        } else {
+            None
+        };
+
+        // Perform verification (combines static checks with corpus)
+        let prover_result = self.verify(policy, corpus)?;
+
+        // Perform dynamic simulation if needed and traffic is available
+        let simulation_result = if mode.includes_dynamic() {
+            if let Some(traffic) = traffic {
+                Some(self.simulate_traffic(policy, traffic)?)
+            } else {
+                None
+            }
+        } else {
+            None
+        };
+
+        // Determine confidence level
+        let confidence = determine_confidence(static_result.as_ref(), simulation_result.as_ref());
+
+        Ok(AnalysisResult {
+            mode,
+            prover_result,
+            static_result,
+            simulation_result,
+            confidence,
+        })
     }
 
     /// Verifies a policy against the given corpus.
@@ -163,6 +234,74 @@ impl Prover {
     }
 }
 
+/// Combined result from mode-aware analysis.
+#[derive(Debug, Clone)]
+pub struct AnalysisResult {
+    /// Analysis mode used.
+    pub mode: AnalysisMode,
+    /// Standard prover result.
+    pub prover_result: ProverResult,
+    /// Static analysis result (if performed).
+    pub static_result: Option<StaticAnalysisResult>,
+    /// Simulation result (if performed).
+    pub simulation_result: Option<SimulationResult>,
+    /// Overall confidence level.
+    pub confidence: Confidence,
+}
+
+impl AnalysisResult {
+    /// Returns true if the policy is approved.
+    #[must_use]
+    pub const fn is_approved(&self) -> bool {
+        self.prover_result.is_approved()
+    }
+
+    /// Returns true if static analysis passed.
+    #[must_use]
+    pub fn static_passed(&self) -> bool {
+        self.static_result
+            .as_ref()
+            .map_or(true, |r| r.passed)
+    }
+
+    /// Returns true if dynamic simulation is compliant.
+    #[must_use]
+    pub fn simulation_compliant(&self) -> bool {
+        self.simulation_result
+            .as_ref()
+            .map_or(true, SimulationResult::is_compliant)
+    }
+
+    /// Returns true if all checks passed.
+    #[must_use]
+    pub fn all_passed(&self) -> bool {
+        self.is_approved() && self.static_passed() && self.simulation_compliant()
+    }
+}
+
+/// Determines confidence level based on analysis results.
+const fn determine_confidence(
+    static_result: Option<&StaticAnalysisResult>,
+    simulation_result: Option<&SimulationResult>,
+) -> Confidence {
+    // Dynamic simulation gives highest confidence
+    if let Some(sim) = simulation_result {
+        if sim.is_compliant() {
+            return Confidence::High;
+        }
+    }
+
+    // Static analysis gives medium confidence
+    if let Some(static_res) = static_result {
+        if static_res.passed {
+            return Confidence::Medium;
+        }
+    }
+
+    // Anything else is low confidence
+    Confidence::Low
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -204,5 +343,113 @@ mod tests {
 
         let result = prover.verify(&policy, &corpus).unwrap();
         assert!(result.is_rejected());
+    }
+
+    #[test]
+    fn analyze_static_mode() {
+        let config = ProverConfig {
+            analysis_mode: AnalysisMode::Static,
+            ..Default::default()
+        };
+        let prover = Prover::new(config);
+        let policy = valid_policy();
+        let corpus = Corpus::new();
+
+        let result = prover.analyze(&policy, &corpus, None).unwrap();
+
+        assert!(result.is_approved());
+        assert!(result.static_result.is_some());
+        assert!(result.simulation_result.is_none());
+        assert_eq!(result.confidence, Confidence::Medium);
+    }
+
+    #[test]
+    fn analyze_dynamic_mode_without_traffic() {
+        let config = ProverConfig {
+            analysis_mode: AnalysisMode::Dynamic,
+            ..Default::default()
+        };
+        let prover = Prover::new(config);
+        let policy = valid_policy();
+        let corpus = Corpus::new();
+
+        let result = prover.analyze(&policy, &corpus, None).unwrap();
+
+        assert!(result.is_approved());
+        assert!(result.static_result.is_none());
+        assert!(result.simulation_result.is_none());
+        // Low confidence because no simulation without traffic
+        assert_eq!(result.confidence, Confidence::Low);
+    }
+
+    #[test]
+    fn analyze_auto_mode() {
+        let config = ProverConfig {
+            analysis_mode: AnalysisMode::Auto,
+            ..Default::default()
+        };
+        let prover = Prover::new(config);
+        let policy = valid_policy();
+        let corpus = Corpus::new();
+
+        let result = prover.analyze(&policy, &corpus, None).unwrap();
+
+        assert!(result.is_approved());
+        assert!(result.static_result.is_some());
+        // No traffic provided, so no simulation
+        assert!(result.simulation_result.is_none());
+        assert_eq!(result.confidence, Confidence::Medium);
+    }
+
+    #[test]
+    fn analyze_with_traffic_gives_high_confidence() {
+        use chrono::{TimeZone, Utc};
+        use crate::traffic::{TrafficPattern, TrafficPoint};
+
+        let config = ProverConfig {
+            analysis_mode: AnalysisMode::Auto,
+            max_budget: Some(100_000),
+            ..Default::default()
+        };
+        let prover = Prover::new(config);
+        let policy = valid_policy();
+        let corpus = Corpus::new();
+
+        let base = Utc.with_ymd_and_hms(2024, 1, 15, 9, 0, 0).unwrap();
+        let traffic = TrafficPattern::from_points(vec![
+            TrafficPoint::new(base, 5000.0),
+            TrafficPoint::new(base + chrono::Duration::minutes(1), 6000.0),
+        ]);
+
+        let result = prover.analyze(&policy, &corpus, Some(&traffic)).unwrap();
+
+        assert!(result.is_approved());
+        assert!(result.static_result.is_some());
+        assert!(result.simulation_result.is_some());
+        assert!(result.simulation_compliant());
+        assert_eq!(result.confidence, Confidence::High);
+    }
+
+    #[test]
+    fn analyze_all_passed() {
+        let prover = Prover::default();
+        let policy = valid_policy();
+        let corpus = Corpus::new();
+
+        let result = prover.analyze(&policy, &corpus, None).unwrap();
+
+        assert!(result.all_passed());
+    }
+
+    #[test]
+    fn static_analysis_on_valid_policy() {
+        let prover = Prover::default();
+        let policy = valid_policy();
+
+        let result = prover.analyze_static(&policy);
+
+        assert!(result.passed);
+        assert!(result.coverage.has_fallback);
+        assert!(result.coverage.has_error_handling);
     }
 }

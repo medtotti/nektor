@@ -36,6 +36,23 @@
 //!     }
 //! }
 //! ```
+//!
+//! # Analysis Modes
+//!
+//! The prover supports different analysis modes for varying speed/accuracy tradeoffs:
+//!
+//! ```rust,ignore
+//! use nectar_prover::{Prover, ProverConfig, AnalysisMode};
+//!
+//! // Static mode: Fast rule analysis only (O(rules))
+//! let config = ProverConfig { analysis_mode: AnalysisMode::Static, ..Default::default() };
+//!
+//! // Dynamic mode: Full traffic simulation (O(rules × events))
+//! let config = ProverConfig { analysis_mode: AnalysisMode::Dynamic, ..Default::default() };
+//!
+//! // Auto mode: Static for iterations, dynamic for final prove
+//! let config = ProverConfig { analysis_mode: AnalysisMode::Auto, ..Default::default() };
+//! ```
 
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
@@ -43,6 +60,7 @@
 #![allow(clippy::module_name_repetitions)]
 #![allow(clippy::must_use_candidate)]
 
+pub mod analysis;
 pub mod checks;
 pub mod error;
 pub mod prover;
@@ -50,8 +68,12 @@ pub mod result;
 pub mod simulation;
 pub mod traffic;
 
+pub use analysis::{
+    AnalysisMode, Confidence, CoverageAnalysis, RuleConflict, StaticAnalysisResult,
+    StaticAnalyzer, StaticWarning,
+};
 pub use error::{Error, Result};
-pub use prover::{Prover, ProverConfig};
+pub use prover::{AnalysisResult, Prover, ProverConfig};
 pub use result::{ProverResult, Severity, Violation, Warning};
 pub use simulation::{
     BudgetViolation, Recommendation, RecommendationKind, SimulationPoint, SimulationResult,
